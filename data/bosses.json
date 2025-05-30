@@ -1,0 +1,27 @@
+// Floor is Key
+{
+	"1": {
+		"name": "Scrap Golem",
+		"stats": {
+			"HEALTH": 1000,
+			"ARMOR": 0.15,
+			"ENERGY_SHIELD": 200,
+			"ATTACK": 50,
+			"ATTACK_SPEED": 0.8,
+			"MOBILITY": 10
+			// Other stats as needed, 0 if not specified
+		}
+	},
+	"2": {
+		"name": "Warden Unit 7",
+		"stats": {
+			"HEALTH": 2500,
+			"AMROR": 0.25,
+			"ENERGY_SHIELD": 500,
+			"ATTACK": 120,
+			"ATTACK_SPEED": 1.0,
+			"MOBILITY": 15,
+			"REPAIR": 5.0
+		}
+	}
+}

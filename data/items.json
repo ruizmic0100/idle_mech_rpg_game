@@ -1,0 +1,46 @@
+[
+	{
+		"id": "basic_laser",
+		"name": "Basic Laser",
+		"description": "Standard issue energy weapon.",
+		"slot": "RIGHT_ARM_WEAPON",
+		"required_tech": 0,
+		"stats": {
+			"ATTACK": 10,
+			"ATTACK_SPEED": 1.0
+		}
+	},
+	{
+		"id": "scout_legs",
+		"name": "Scout Legs",
+		"description": "Lightweight legs for increased mobility.",
+		"slot": "LEGS",
+		"required_tech": 5,
+		"stats": {
+			"MOBILITY": 15,
+			"HEALTH": 50
+		}
+	},
+	{
+		"id": "standard_chest",
+		"name": "Standard Chest Plate",
+		"description": "Provides decent protection.",
+		"slot": "CHEST",
+		"required_tech": 0,
+		"stats": {
+			"HEALTH": 100,
+			"ARMOR": 0.10
+		}
+	},
+	{
+		"id": "basic_generator",
+		"name": "Basic Generator",
+		"description": "Supplies power to the mech.",
+		"slot": "GENERATOR",
+		"required_tech": 0,
+		"stats": {
+			"ENERGY": 100,
+			"ENERGY_RECOVERY": 1.0
+		}
+	}
+]
