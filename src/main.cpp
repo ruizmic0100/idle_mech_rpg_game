@@ -1,6 +1,7 @@
 #include <iostream>	
 #include <string>
 #include <vector>
+#include <fstream>
 #include "crow_all.h"
 #include "Game.h"
 #include "json.hpp"
@@ -11,8 +12,55 @@ using json = nlohmann::json;
 // Need to tell nlohmann/json how to convert our structs to JSON
 
 // Helper to convert Stats map to JSON object
-void to_json(json& j, const Stats& s) {
+void mech_stats_to_json(json& j, Mech& m) {
 	j = json::object();
+	Stats s = m.getBaseStats();
+	std::string mech_name_key = m.getName();
+
+	for (const auto& pair : s) {
+		// Convert StatType enum to string for JSON key
+		std::string key;
+		switch(pair.first) {
+			case StatType::HEALTH:
+				key = "HEALTH";
+				break;
+			case StatType::ARMOR:
+				key = "ARMOR";
+				break;
+			case StatType::ENERGY_SHIELD:
+				key = "ENERGY_SHIELD";
+				break;
+			case StatType::ATTACK:
+				key = "ATTACK";
+				break;
+			case StatType::ATTACK_SPEED:
+				key = "ATTACK_SPEED";
+				break;
+			case StatType::MOBILITY:
+				key = "MOBILITY";
+				break;
+			case StatType::ENERGY:
+				key = "ENERGY";
+				break;
+			case StatType::ENERGY_RECOVERY:
+				key = "ENERGY_RECOVERY";
+				break;
+			case StatType::REPAIR:
+				key = "REPAIR";
+				break;
+			case StatType::TECHNOLOGY:
+				key = "TECHNOLOGY";
+				break;
+			default:
+				key = "UNKNOWN";
+				break;
+		}
+
+		j[key] = pair.second;
+	}
+
+	json wrapped_json_object;
+	wrapped_json_object[mech_name_key] = j;
 }
 
 // --- End JSON Serialization ---
@@ -40,6 +88,13 @@ int main() {
 	game_instance.print_player_mech_stats();
 	game_instance.print_enemy_mech_stats();
 
+	std::cout << "Creating json object" << std::endl;
+	json test_j;
+	mech_stats_to_json(test_j, game_instance.player_mech);
+	std::cout << "Creating json file" << std::endl;
+	std::ofstream o("output.json");
+	o << test_j.dump(4) << std::endl;
+	o.close();
 	
 
 	// Initialize Web Server (Crow)

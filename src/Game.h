@@ -77,6 +77,9 @@ public:
 	void print_player_mech_stats();
 	void print_enemy_mech_stats();
 
+	Mech player_mech;
+	Mech current_enemy;
+
 private:
 	void gameLoop(); // The function that runs in a separate thead
 	void gameTick(double delta_time); // Logic for one update cycle
@@ -88,8 +91,6 @@ private:
 	std::shared_ptr<Item> generateRandomItem(); // Creates an item drop
 	void logEvent(const std::string& message);
 
-	Mech player_mech;
-	Mech current_enemy;
 	bool is_enemy_boss = false;
 
 	int current_floor = 1;

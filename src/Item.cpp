@@ -26,7 +26,7 @@ void Item::generateInstanceStats() {
 	Stats final_stats;
 	for (const auto& pair : item_template->base_stats) {
 		StatType type = pair.first;
-		doubel base_value = pair.second;
+		double base_value = pair.second;
 
 		// Apply flat bonus multiplier first (only for Uncommon+)
 		double modified_base = (rarity == Rarity::COMMON) ? base_value : base_value * flat_bonus_mult;
@@ -46,5 +46,5 @@ void Item::generateInstanceStats() {
 
 		final_stats[type] = final_value;
 	}
-	instance_stats = final_stas; // Assign calculated stats
+	instance_stats = final_stats; // Assign calculated stats
 }
