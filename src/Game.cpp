@@ -45,7 +45,7 @@ Game::Game() : current_floor(1), enemies_defeated_on_floor(0), combat_phase(Comb
 		{StatType::HEALTH, 200},
 		{StatType::ARMOR, 1},
 		{StatType::ENERGY_SHIELD, 1},
-		{StatType::ATTACK, 10},
+		{StatType::ATTACK, 1},
 		{StatType::ATTACK_SPEED, 3},
 		{StatType::MOBILITY, 1},
 		{StatType::ENERGY, 10},
@@ -158,6 +158,7 @@ void Game::stopGameLoop() {
 
 void Game::gameLoop() {
 	auto last_time = std::chrono::high_resolution_clock::now();
+	std::this_thread::sleep_for(std::chrono::milliseconds(5000)); // Wait for main thread to start up then this.
 	while (game_running) {
 		auto current_time = std::chrono::high_resolution_clock::now();
 		std::chrono::duration<double> elapsed = current_time - last_time;
@@ -209,6 +210,7 @@ void Game::gameTick(double delta_time) {
 }
 
 void Game::startCombat() {
+	std::cout << " ----------------------------- " << std::endl;
 	std::cout << "Starting new combat encounter..." << std::endl;
 
 	if (!current_enemy.isAlive() || current_enemy.getName().empty()) { // If no ememy or previous one was defeated
@@ -279,9 +281,10 @@ void Game::handleCombat(double delta_time) {
 			}
 		} else {
 			combat_phase = next_phase_if_alive;
-			std::cout << defender->getName() + " HP: " + std::to_string(defender->getCurrentHp()).substr(0,5) + " EN_SHIELD: " + std::to_string(defender->getCurrentEnergyShield()) << std::endl;
+			// std::cout << defender->getName() + " HP: " + std::to_string(defender->getCurrentHp()).substr(0,5) + " EN_SHIELD: " + std::to_string(defender->getCurrentEnergyShield()) << std::endl;
 		}
 		time_since_last_action = 0.0; // Reset timer for next action
+		std::cout << " --- " << std::endl;
 	}
 }
 
@@ -374,6 +377,72 @@ std::shared_ptr<Item> Game::generateRandomItem() {
 	return new_item;
 }
 
+GameStateForWeb Game::getGameState() {
+	std::cerr << "DEBUG: Entering getGameState()" << std::endl;
+	std::lock_guard<std::mutex> lock(game_state_mutex);
+	std::cerr << "DEBUG: getGameState() acquired mutext" << std::endl;
+	GameStateForWeb state;
+
+	// Player Info
+	std::cerr << "DEBUG: Populating player info" << std::endl;
+	if (!player_mech.getName().empty()) {
+		state.player_name = player_mech.getName();
+		std::cerr << "DEBUG: Player name: " << state.player_name << std::endl;
+	} else {
+		std::cerr << "DEBUG: Player name is empty!" << std::endl;
+		state.player_name = "DefaultPlayer"; // Fallback
+	}
+
+	// Check player_mech.equipment unique_ptr
+	if (!player_mech.getEquipmentInternalPtr()) {
+		std::cerr << "FATAL DEBUG: player_mech.equipment is NULL in getGameState" << std::endl;	
+	} else {
+		std::cerr << "DEBUG: player_mech.equipment is valid." << std::endl;
+	}
+
+
+	Stats p_total_stats = player_mech.getTotalStats();
+	state.player_hp = player_mech.getCurrentHp();
+	state.player_max_hp = getStat(p_total_stats, StatType::HEALTH);
+	state.player_shield = player_mech.getCurrentEnergyShield();
+	state.player_max_shield = getStat(p_total_stats, StatType::ENERGY_SHIELD);
+	state.player_total_stats = p_total_stats;
+	for (const auto& pair : player_mech.getEquipment().getEquippedItems()) {
+		if (pair.second) {
+			state.player_equipment_names[pair.first] = pair.second->getName() + " (" + rarityToString(pair.second->getRarity()) + ")";
+		} else {
+			state.player_equipment_names[pair.first] = "(Empty)";
+		}
+	}
+
+	// Enemy Info
+	if (!current_enemy.getName().empty()) { // Check if an enemy is actually spawned
+		state.enemy_name = current_enemy.getName();
+		Stats e_total_stats = current_enemy.getTotalStats(); // Assuming enemy might have equipment
+
+		state.enemy_hp = current_enemy.getCurrentHp();
+		state.enemy_max_hp = getStat(e_total_stats, StatType::HEALTH);
+		state.enemy_shield = current_enemy.getCurrentEnergyShield();
+		state.enemy_max_shield = getStat(e_total_stats, StatType::ENERGY_SHIELD);
+		state.enemy_is_boss = is_enemy_boss;
+	} else {
+		state.enemy_name = "No Target";
+		state.enemy_hp = 0;
+		state.enemy_max_hp = 0;
+		state.enemy_shield = 0;
+		state.enemy_max_shield = 0;
+		state.enemy_is_boss = false;
+	}
+
+	// Game Progress
+	state.current_floor = current_floor;
+	state.enemies_defeated_on_floor = enemies_defeated_on_floor;
+
+	// Log
+	state.recent_log = game_log; // Copy the log
+
+	return state;
+}
 
 
 // DEBUGMETHODS: print mech stats

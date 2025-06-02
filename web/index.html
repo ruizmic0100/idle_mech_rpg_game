@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mech Idle RPG</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>Mech Idle RPG</h1>
+
+    <div class="container">
+        <div class="mech-panel" id="player-panel">
+            <h2>Player Mech: <span id="player-name">--</span></h2>
+            <p>HP: <span id="player-hp">--</span> / <span id="player-max-hp">--</span></p>
+            <p>Shield: <span id="player-shield">--</span> / <span id="player-max-shield">--</span></p>
+            <h3>Stats</h3>
+            <pre id="player-stats">--</pre>
+             <h3>Equipment</h3>
+            <pre id="player-equipment">--</pre>
+        </div>
+
+        <div class="mech-panel" id="enemy-panel">
+            <h2>Enemy Mech: <span id="enemy-name">--</span> <span id="enemy-is-boss"></span></h2>
+            <p>HP: <span id="enemy-hp">--</span> / <span id="enemy-max-hp">--</span></p>
+            <p>Shield: <span id="enemy-shield">--</span> / <span id="enemy-max-shield">--</span></p>
+        </div>
+    </div>
+
+    <div class="progress-panel">
+        <p>Floor: <span id="current-floor">--</span> | Enemies Defeated: <span id="enemies-defeated">--</span></p>
+    </div>
+
+    <div class="log-panel">
+        <h3>Game Log</h3>
+        <ul id="game-log">
+            <li>Waiting for game data...</li>
+        </ul>
+    </div>
+
+    <script src="script.js"></script>
+</body>

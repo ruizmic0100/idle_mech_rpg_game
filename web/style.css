@@ -1,0 +1,60 @@
+body {
+    font-family: sans-serif;
+    background-color: #282c34;
+    color: #abb2bf;
+    line-height: 1.6;
+    padding: 20px;
+}
+
+h1, h2, h3 {
+    color: #61afef;
+}
+
+.container {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.mech-panel, .progress-panel, .log-panel {
+    background-color: #3b4048;
+    border: 1px solid #4f5660;
+    border-radius: 5px;
+    padding: 15px;
+    margin: 10px;
+    min-width: 300px;
+}
+
+#enemy-is-boss {
+    color: #e06c75; /* Reddish for boss indicator */
+    font-weight: bold;
+}
+
+pre {
+    background-color: #21252b;
+    padding: 10px;
+    border-radius: 3px;
+    font-family: monospace;
+    white-space: pre-wrap; /* Allow wrapping */
+    word-wrap: break-word;
+}
+
+#game-log {
+    list-style: none;
+    padding: 0;
+    max-height: 200px;
+    overflow-y: auto;
+    background-color: #21252b;
+    border-radius: 3px;
+    padding: 10px;
+}
+
+#game-log li {
+    border-bottom: 1px dashed #4f5660;
+    padding: 5px 0;
+    font-size: 0.9em;
+}
+#game-log li:last-child {
+    border-bottom: none;
+}

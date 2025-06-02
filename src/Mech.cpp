@@ -8,6 +8,9 @@
 Mech::Mech(std::string n, Stats base) {
 	name = n;
 	base_stats = base;
+	equipment = std::make_unique<Equipment>();
+
+	resetCombatState();
 
 	std::cout << "Mech '" << this->name << "' created." << std::endl;
 }
@@ -42,6 +45,15 @@ void Mech::setName(const std::string& n) {
 
 void Mech::setBaseStats(const Stats& s) {
 	this->base_stats = s;
+}
+
+// Returns a reference to the Equipment Manager
+// the unique_ptr 'equipment' should have been initialized by constructors
+Equipment& Mech::getEquipment() {
+	if (!equipment) {
+		// This case should ideally not be hit if constructors always init equipment
+	}
+	return *equipment; // Dereference the unique_ptr
 }
 
 // --- Core Logic ---

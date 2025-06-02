@@ -34,6 +34,9 @@ public:
 
 	void setName(const std::string& n); // For bosses/enemies
 	void setBaseStats(const Stats& s); // For bosses/enemies
+	
+	// Getter for debugging
+	const std::unique_ptr<Equipment>& getEquipmentInternalPtr() const { return equipment; }
 
 private:
 	std::string name;
