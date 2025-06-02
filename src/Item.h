@@ -4,6 +4,7 @@
 #include <string>
 #include <memory>
 #include "Stats.h"
+#include "Utils.h"
 
 struct ItemTemplate { // Data loaded from JSON
 	std::string id;
@@ -30,6 +31,7 @@ public:
 	void generateInstanceStats(); // Applies rarity modifiers
 
 private:
+	// NOTE(MSR): ItemTemplate object should always be read-only.
 	std::shared_ptr<const ItemTemplate> item_template;
 	Rarity rarity;
 	Stats instance_stats; // The actual stats after rarity roll

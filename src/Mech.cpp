@@ -35,3 +35,128 @@ double Mech::getCurrentEnergy() const {
 	return current_energy;
 }
 
+// --- Setters ---
+void Mech::setName(const std::string& n) {
+	this->name = n;
+}
+
+void Mech::setBaseStats(const Stats& s) {
+	this->base_stats = s;
+}
+
+// --- Core Logic ---
+
+// Calculates: total stats by combining base_stats with stats from equipped items
+Stats Mech::getTotalStats() const {
+	Stats total_s = base_stats; // Copy of base stats
+
+	if (equipment) { // Check if the equipment manager exists
+		Stats equipment_s = equipment->getTotalStats(); // Get summed stats from all equipped items
+		for (const auto& pair : equipment_s) {
+			addStat(total_s, pair.first, pair.second);
+		}
+	}
+
+	return total_s;
+}
+
+// Resets current HP, Shield, and Energy to their maximum values based on current total stats
+void Mech::resetCombatState() {
+	Stats current_total_stats = getTotalStats();
+
+	current_hp = getStat(current_total_stats, StatType::HEALTH);
+	current_energy_shield = getStat(current_total_stats, StatType::ENERGY_SHIELD);
+	current_energy = getStat(current_total_stats, StatType::ENERGY);
+
+	// Ensure combat stats are not negative
+	current_hp = std::max(0.0, current_hp);
+	current_energy_shield = std::max(0.0, current_energy_shield);
+	current_energy = std::max(0.0, current_energy);
+}
+
+// Applies incoming damage, considering armor and shields
+void Mech::takeDamage(double incoming_damage) {
+	if (incoming_damage <= 0 || !isAlive()) {
+		return; // No damage to take or already defeated
+	}
+
+	Stats current_total_stats = getTotalStats();
+
+
+	// Apply damage to energy shield first
+	double damage_after_shield = incoming_damage;
+	if (current_energy_shield > 0) {
+		double damage_to_shield = std::min(current_energy_shield, incoming_damage);
+		current_energy_shield -= damage_to_shield;
+		damage_after_shield -= damage_to_shield;
+	}
+	
+	double damage_after_armor = 0;
+	if (current_energy_shield == 0) {
+
+		double armor_value = getStat(current_total_stats, StatType::ARMOR);
+
+		// Ensure armor is within limits (1 to 9999)
+		armor_value = std::max(1.0, std::min(9999.0, armor_value));
+
+		damage_after_armor = damage_after_shield * (1 - (armor_value / 9999)); // 9999 being the max armor mitigation one could have
+	}
+	
+	// Apply remaining damage after mitigations
+	if (damage_after_armor > 0) {
+		current_hp -= damage_after_armor;
+	}
+	
+	// Ensure hp doesn't go below zero
+	if (current_hp < 0) {
+		current_hp = 0;
+	}
+
+	std::cout << getName() + " after damage HP: " + std::to_string(getCurrentHp()) + " EN_SHIELD: " + std::to_string(getCurrentEnergyShield()) << std::endl; 
+}
+
+// Regenerates health and energy over time
+void Mech::regenerate(double delta_time) {
+	if (!isAlive() && getStat(getTotalStats(), StatType::REPAIR) <= 0) { // No self-repair if truly dead and no passive repair
+		return;
+	}
+
+	Stats current_total_stats = getTotalStats();
+	double max_hp = getStat(current_total_stats, StatType::HEALTH);
+	double max_energy = getStat(current_total_stats, StatType::ENERGY);
+
+	// Health Regeneration (Repair)
+	double repair_amount = getStat(current_total_stats, StatType::REPAIR) * delta_time;
+	if (repair_amount > 0 && current_hp < max_hp) {
+		current_hp += repair_amount;
+		if (current_hp > max_hp) {
+			current_hp = max_hp;
+		}
+	}
+
+	// Energy Regeneration
+	double energy_regen_amount = getStat(current_total_stats, StatType::ENERGY_RECOVERY) * delta_time;
+	if (energy_regen_amount > 0 && current_energy < max_energy) {
+		current_energy += energy_regen_amount;
+		if (current_energy > max_energy) {
+			current_energy = max_energy;
+		}
+	}
+}
+
+// Checks if the mech is still operational
+bool Mech::isAlive() const {
+	return current_hp > 0;
+}
+
+// Calculates the base damage for a single attack action.
+// Attack speed will determine how often this is called by the game loop
+double Mech::calculateAttackDamage() const {
+	return getStat(getTotalStats(), StatType::ATTACK);
+}
+
+// Checks if the mech meets the technology requirement for an item
+bool Mech::canEquip(const Item& item) const {
+	// This is a simplified check. A real system might check slot availability, item type restrictions, etc.
+	return getStat(getTotalStats(), StatType::TECHNOLOGY) >= item.getRequiredTech();
+}

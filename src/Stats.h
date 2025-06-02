@@ -14,7 +14,7 @@ enum class StatType {
 using Stats = std::map<StatType, double>;
 
 // Helper to safely get a state value (returns 0 if not present)
-inline double getStat(Stats& stats, StatType type) {
+inline double getStat(const Stats& stats, StatType type) {
 	auto it = stats.find(type);
 	return (it != stats.end()) ? it->second : 0.0;
 }
@@ -35,7 +35,5 @@ enum class Rarity {
 	COMMON, UNCOMMON, RARE, LEGENDARY
 };
 
-std::string rarityToString(Rarity r);
-Rarity stringToRarity(const std::string& s);
 
 #endif // STATS_H

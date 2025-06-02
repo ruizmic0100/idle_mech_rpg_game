@@ -14,6 +14,7 @@ using json = nlohmann::json;
 // Helper to convert Stats map to JSON object
 void mech_stats_to_json(json& j, Mech& m) {
 	j = json::object();
+	json wrapped_json_object;
 	Stats s = m.getBaseStats();
 	std::string mech_name_key = m.getName();
 
@@ -56,11 +57,10 @@ void mech_stats_to_json(json& j, Mech& m) {
 				break;
 		}
 
-		j[key] = pair.second;
+		wrapped_json_object[key] = pair.second;
 	}
 
-	json wrapped_json_object;
-	wrapped_json_object[mech_name_key] = j;
+	j[mech_name_key] = wrapped_json_object;
 }
 
 // --- End JSON Serialization ---
@@ -72,29 +72,28 @@ int main() {
 	// Initialize Game
 	Game game_instance;
 
-	
-
-//	try {
-//		game_instance.loadData("data/items.json", "data/bosses.json");
-//	} catch (const std::exception& e) {
-//		std::cerr << "Error loading game data: " << e.what() << std::endl;
-//		return 1;
-//	}
+	try {
+		game_instance.loadData("data/items.json", "data/bosses.json");
+	} catch (const std::exception& e) {
+		std::cerr << "Error loading game data: " << e.what() << std::endl;
+		return 1;
+	}
 
 	// Start Game Loop in a separate thread
-	//game_instance.startGameLoop();
+	game_instance.startGameLoop();
 	std::cout << "Game loop started." << std::endl;
+	
+	// Creating player_mech json stats file
+	json player_mech_j;
+	mech_stats_to_json(player_mech_j, game_instance.player_mech);
+	std::ofstream p_o("player_mech.json");
+	p_o << player_mech_j.dump(4);
+	p_o.close();
+	std::cout << "Created player_mech json stats file" << std::endl;
 
-	game_instance.print_player_mech_stats();
-	game_instance.print_enemy_mech_stats();
+	std::cout << "Press Enter to stop the game..." << std::endl;
+	std::cin.get(); // Wait for user input
 
-	std::cout << "Creating json object" << std::endl;
-	json test_j;
-	mech_stats_to_json(test_j, game_instance.player_mech);
-	std::cout << "Creating json file" << std::endl;
-	std::ofstream o("output.json");
-	o << test_j.dump(4) << std::endl;
-	o.close();
 	
 
 	// Initialize Web Server (Crow)

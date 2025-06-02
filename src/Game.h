@@ -11,6 +11,7 @@
 
 #include "Mech.h"
 #include "Item.h"
+#include "Utils.h"
 #include "json.hpp" // nlohmann/json
 
 /* Implementation Highlights
