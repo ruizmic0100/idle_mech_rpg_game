@@ -142,11 +142,21 @@ void Game::loadData(const std::string& item_file_path, const std::string& boss_f
 	//std::cout << "boss data: " << boss_json_data.dump(4);	
 }
 
-void Game::startGameLoop() {
+bool Game::startGame() {
+	std::lock_guard<std::mutex> lock(game_state_mutex); // Protect game_running state
 	if (!game_running) {
 		game_running = true;
+		// NOTE(MSR): It's important that game_loop itself doesn't re-spawn the first enemy
+		// if it's already set by a previous, stoppedgame. Or reset things here.
+		// For a fresh start:
+		current_floor = 1;
+		enemies_defeated_on_floor = 0;
+		combat_phase = CombatPhase::IDLE; // Reset Combat phase
+		// WARN(MSR): current_enemy might need to be cleared or reset if a fully fresh start is wanted
 		game_thread = std::thread(&Game::gameLoop, this);
+		return true;
 	}
+	return false; // Already running or failed to start
 }
 
 void Game::stopGameLoop() {
@@ -154,6 +164,10 @@ void Game::stopGameLoop() {
 	if (game_thread.joinable()) {
 		game_thread.join();
 	}
+}
+
+bool Game::isGameRunning() const {
+	return game_running.load(); // Safely read atomic bool
 }
 
 void Game::gameLoop() {
@@ -378,13 +392,20 @@ std::shared_ptr<Item> Game::generateRandomItem() {
 }
 
 GameStateForWeb Game::getGameState() {
-	std::cerr << "DEBUG: Entering getGameState()" << std::endl;
 	std::lock_guard<std::mutex> lock(game_state_mutex);
-	std::cerr << "DEBUG: getGameState() acquired mutext" << std::endl;
 	GameStateForWeb state;
 
+	if (!isGameRunning()) {
+		state.player_name = "Game Not Started";
+		state.recent_log.push_back("Game is waiting to be started.");
+
+		// Fill other fields with placeholder/default values if needed by JS
+		state.player_hp = 0; state.player_max_hp = 0;
+		state.enemy_name = "-";
+		return state;
+	}
+
 	// Player Info
-	std::cerr << "DEBUG: Populating player info" << std::endl;
 	if (!player_mech.getName().empty()) {
 		state.player_name = player_mech.getName();
 		std::cerr << "DEBUG: Player name: " << state.player_name << std::endl;

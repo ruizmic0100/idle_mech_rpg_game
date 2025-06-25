@@ -176,9 +176,6 @@ int main() {
 		return 1;
 	}
 
-	// Start Game Loop in a separate thread
-	game_instance.startGameLoop();
-	std::cout << "Game loop started." << std::endl;
 	
 	// Creating player_mech json stats file
 	json player_mech_j;
@@ -199,6 +196,16 @@ int main() {
 		GameStateForWeb current_state = game_instance.getGameState();
 		json response_json = current_state; // Uses the to_json function we defined
 		return crow::response(response_json.dump()); // Convert JSON object to string
+	 });
+
+	// API endpoint to start the game
+	CROW_ROUTE(app, "/api/startgame").methods(crow::HTTPMethod::Post) // POST for actions
+	([&game_instance]() {
+		if (game_instance.startGame()) {
+			return crow::response(200, "Game started successfully.");
+		} else {
+			return crow::response(409, "Game already running or failed to start."); // 409 conflict
+		}
 	 });
 
 	// Simple route to serve the HTML file (adjust path if needed)

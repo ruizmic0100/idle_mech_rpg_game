@@ -55,6 +55,36 @@ pre {
     padding: 5px 0;
     font-size: 0.9em;
 }
+
 #game-log li:last-child {
     border-bottom: none;
 }
+
+#start-screen {
+	text-align: center;
+	padding-top: 100px;
+}
+
+#start-game-button {
+	background-color: #61afef;
+	color: #282c34;
+	border: none;
+	padding: 15px 30px;
+	font-size: 1.2em;
+	cursor: pointer;
+	border-radius: 5px;
+	margin-top: 20px;
+}
+
+#start-game-button:hover {
+	background-color: #528baf;
+}
+
+#start-message {
+	margin-top: 20px;
+	color: #e06c75; /* For error messages */
+}
+
+
+
+

@@ -68,8 +68,10 @@ public:
 	~Game();
 
 	void loadData(const std::string& item_file, const std::string& boss_file);
-	void startGameLoop();
+	bool startGame(); // Returns true if successfully started
 	void stopGameLoop();
+	bool isGameRunning() const;
+
 
 	GameStateForWeb getGameState(); // Thread-safe getter for web server
 
