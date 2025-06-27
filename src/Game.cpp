@@ -143,20 +143,48 @@ void Game::loadData(const std::string& item_file_path, const std::string& boss_f
 }
 
 bool Game::startGame() {
+	std::cerr << "DEBUG: Game::startGame() called." << std::endl;
 	std::lock_guard<std::mutex> lock(game_state_mutex); // Protect game_running state
+	std::cerr << "DEBUG: Game::startGame() acquired mutex." << std::endl;
 	if (!game_running) {
+		std::cerr << "DEBUG: Game::startGame() - game_running is false, proceed to start." << std::endl;
 		game_running = true;
+		std::cerr << "DEBUG: Game::startGame() - game_running is SET to true." << std::endl;
 		// NOTE(MSR): It's important that game_loop itself doesn't re-spawn the first enemy
 		// if it's already set by a previous, stoppedgame. Or reset things here.
 		// For a fresh start:
 		current_floor = 1;
 		enemies_defeated_on_floor = 0;
 		combat_phase = CombatPhase::IDLE; // Reset Combat phase
+		std::cerr << "DEBUG: Game::StartGame() - Game state reset." << std::endl;
+
 		// WARN(MSR): current_enemy might need to be cleared or reset if a fully fresh start is wanted
-		game_thread = std::thread(&Game::gameLoop, this);
+		// THE CRITICAL PART: Thread creation
+		try {
+			game_thread = std::thread(&Game::gameLoop, this);
+			std::cerr << "DEBUG: Game::startGame() - game_thread object CREATED." << std::endl;
+
+		} catch (const std::system_error& e) {
+			std::cerr << "FATAL ERROR: Game::startGame() - std::system_error while creating thread: " << e.what() << " (Code: " << e.code() << ")" << std::endl;
+			game_running = false; // Revert state as thread creation failed.
+			return false;
+		} catch (const std::exception& e) {
+			std::cerr << "FATAL ERROR: Game::startGame() - std::exception while creating thread: " << e.what() << std::endl;
+			game_running = false; // Revert state
+			return false;
+		} catch (...) {
+			std::cerr << "FATAL ERROR: Game::startGame() - Unknown error while creating thread." << std::endl;	
+			game_running = false; // revert state
+			return false;
+		}
+
+		// If thread creation didn't throw:
+		std::cerr << "DEBUG: Game::startGame() - Successfully started. Returning true." << std::endl;
 		return true;
+	} else {
+		std::cerr << "DEBUG: Game::startGame() - game_running was already true. Not starting again." << std::endl;
+		return false; // Already running or failed to start
 	}
-	return false; // Already running or failed to start
 }
 
 void Game::stopGameLoop() {
@@ -171,6 +199,7 @@ bool Game::isGameRunning() const {
 }
 
 void Game::gameLoop() {
+	std::cerr<< "DEBUG: Game::gameLoop() THEAD STARTED." << std::endl;
 	auto last_time = std::chrono::high_resolution_clock::now();
 	std::this_thread::sleep_for(std::chrono::milliseconds(5000)); // Wait for main thread to start up then this.
 	while (game_running) {
@@ -184,6 +213,7 @@ void Game::gameLoop() {
 		// Cap update rate slightly to prevent 100% CPU usage on one core if gameTick is too fast
 		std::this_thread::sleep_for(std::chrono::milliseconds(30)); // Approx 33 FPS for game logic
 	}
+	std::cerr << "DEBUG: Game::gameLoop() THREAD EXITED." << std::endl;
 }
 
 void Game::gameTick(double delta_time) {

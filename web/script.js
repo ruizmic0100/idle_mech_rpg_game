@@ -1,6 +1,6 @@
-const API_ENDPOINT = '/api/gamestate';
+const API_GAMESTATE_ENDPOINT = '/api/gamestate';
 const API_STARTGAME_ENDPOINT = '/api/startgame';
-const POLLING_INTERVAL = 1000; // Poll every 1 second (1000 ms)
+const POLLING_INTERVAL = 800; // Poll every 800 millisecond 
 
 const startScreen = document.getElementById('start-screen');
 const gameScreen = document.getElementById('game-screen');
@@ -96,6 +96,7 @@ function updateUI(data) {
 }
 
 async function fetchGameState() {
+	console.log(`fetchGameSate called`);
     try {
         const response = await fetch(API_GAMESTATE_ENDPOINT);
         if (!response.ok) {
@@ -131,11 +132,15 @@ async function handleStartGame() {
 			showGameScreen();
 			fetchGameState(); // Fetch state immediately after starting
 			startPollingGameState(); // Start regular polling
+		} else {
+			const errorText = await resposne.text();
+			startMessageElement.textContent = `Failed to start game: ${errorText} (Status: ${response.status})`;
+			startGameButton.disabled = false;
 		}
-	} else {
-		const errorText = await resposne.text();
+	} catch (error) {
+		console.error("Error starting game:", error);
 		startMessageElement.textContent = `Error starting game: ${error.message}`;
-		startGameButton.disabled = false;
+		startGameButton.disabeld = false;
 	}
 }
 
@@ -144,18 +149,23 @@ function showStartScreen() {
 	gameScreen.style.display = 'none';
 }
 
+function showGameScreen() {
+	startScreen.style.display = 'none';
+	gameScreen.style.display = 'block';
+}
+
 function startPollingGameState() {
 	if (gameStateIntervalId) {
 		clearInterval(gameStateIntervalId); // Clear existing interval if any
 	}
 	fetchGameState(); // Initial fetch
-	gameSateIntervalId = setInterval(fetchGameState, POLLING_INTERVAL);
+	gameStateIntervalId = setInterval(fetchGameState, POLLING_INTERVAL);
 }
 
 // --- Initialization ---
 startGameButton.addEventListener('click', handleStartGame);
 
-startPollingGameState();
+//startPollingGameState();
 
 // Start polling
 //fetchGameState(); // Initial fetch

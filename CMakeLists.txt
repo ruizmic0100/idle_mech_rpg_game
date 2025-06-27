@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(MechIdleRPG CXX)
+project(IdleMechRPG CXX)
 message("${CMAKE_PROJECT_NAME} ---")
 
 message("System Info ---")
@@ -43,7 +43,7 @@ set(SOURCES
 	src/Item.cpp
 )
 
-add_executable(mech_idle_rpg ${SOURCES})
+add_executable(idle_mech_rpg ${SOURCES})
 
 # (INJECTING JSON FILES)Step 1. Finding all the files in the data folder
 file(GLOB_RECURSE JSON_FILES 
@@ -91,7 +91,7 @@ if(JSON_FILES)
 	)
 
 	# Make the main executable depend on this custom target
-	add_dependencies(mech_idle_rpg copy_project_json_files)
+	add_dependencies(idle_mech_rpg copy_project_json_files)
 
 else()
 	message(STATUS "No json files found in ${SOURCE_DATA_FOLDER} to copy.")
@@ -114,7 +114,7 @@ if(WEB_FILES)
 	)
 
 	# Make the main executable depend on this custom target
-	add_dependencies(mech_idle_rpg copy_project_web_files)
+	add_dependencies(idle_mech_rpg copy_project_web_files)
 
 else()
 	message(STATUS "No web files found in ${SOURCE_WEB_FOLDER} to copy.")
@@ -124,7 +124,7 @@ endif()
 # Link libraries
 # For std::thread, might need pthreads
 find_package(Threads REQUIRED)
-target_link_libraries(mech_idle_rpg PRIVATE Threads::Threads)
+target_link_libraries(idle_mech_rpg PRIVATE Threads::Threads)
 
 
-install(TARGETS mech_idle_rpg DESTINATION bin)
+install(TARGETS idle_mech_rpg DESTINATION bin)
