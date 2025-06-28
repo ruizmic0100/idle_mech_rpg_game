@@ -29,6 +29,10 @@
 
 */
 
+#define INITIAL_GAMELOOP_DELAY_MS 3000 // Used to delay the game loop from starting.
+#define GAMELOOP_DELAY_MS 30 // Used to cap update rate slightly to prevent 100% CPU usage on one core.
+#define AWARDLOOT_DELAY_MS 2000 // Used to add a delay so that awarded loot is given time to be read.
+
 using json = nlohmann::json;
 
 struct BossData {

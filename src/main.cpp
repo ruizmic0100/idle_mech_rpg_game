@@ -161,14 +161,11 @@ void mech_stats_to_json(json& j, Mech& m) {
 
 // --- End JSON Serialization ---
 
-
-
-
-
 int main() {
 	// Initialize Game
 	Game game_instance;
-
+	
+	// Load in items and boss data
 	try {
 		game_instance.loadData("data/items.json", "data/bosses.json");
 	} catch (const std::exception& e) {

@@ -13,6 +13,18 @@ std::shared_ptr<Item> Equipment::equip(std::shared_ptr<Item> new_item) {
 		old_item != it->second; // Store the old item
 	}
 	equipped_items[slot] = new_item; // Equip the new item
+	
+	std::string slot_str = "";
+	if (slot == EquipmentSlot::HEAD) slot_str = "HEAD";
+	if (slot == EquipmentSlot::CHEST) slot_str = "CHEST";
+	if (slot == EquipmentSlot::ARMS) slot_str = "ARMS";
+	if (slot == EquipmentSlot::LEGS) slot_str = "LEGS";
+	if (slot == EquipmentSlot::GENERATOR) slot_str = "GENERATOR";
+	if (slot == EquipmentSlot::LEFT_ARM_WEAPON) slot_str = "LEFT_ARM_WEAPON";
+	if (slot == EquipmentSlot::RIGHT_ARM_WEAPON) slot_str = "RIGHT_ARM_WEAPON";
+	if (slot == EquipmentSlot::LEFT_SHOULDER_WEAPON) slot_str = "LEFT_SHOULDER_WEAPON";
+	if (slot == EquipmentSlot::RIGHT_SHOULDER_WEAPON) slot_str = "RIGHT_SHOULDER_WEAPON";
+	std::cout << "Equipped item " << equipped_items[slot] << " on " << slot_str << " slot." << std::endl;
 	return old_item; // Return the previously equipped item
 }
 

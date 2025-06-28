@@ -5,7 +5,6 @@
 
 #include "Game.h"
 
-
 // Helper for JSON to Enum conversion
 StatType stringToStatType(const std::string& s) {
 	if (s == "HEALTH") return StatType::HEALTH;
@@ -36,6 +35,19 @@ EquipmentSlot stringToEquipmentSlot(const std::string& s) {
 	return EquipmentSlot::NONE; // Default
 }
 
+std::string equipmentSlotToString(const EquipmentSlot& s) {
+	if (s == EquipmentSlot::HEAD) return "HEAD";
+	if (s == EquipmentSlot::CHEST) return "CHEST";
+	if (s == EquipmentSlot::ARMS) return "ARMS";
+	if (s == EquipmentSlot::LEGS) return "LEGS";
+	if (s == EquipmentSlot::GENERATOR) return "GENERATOR";
+	if (s == EquipmentSlot::LEFT_ARM_WEAPON) return "LEFT_ARM_WEAPON";
+	if (s == EquipmentSlot::RIGHT_ARM_WEAPON) return "RIGHT_ARM_WEAPON";
+	if (s == EquipmentSlot::LEFT_SHOULDER_WEAPON) return "LEFT_SHOULDER_WEAPON";
+	if (s == EquipmentSlot::RIGHT_SHOULDER_WEAPON) return "RIGHT_SHOULDER_WEAPON";
+	return "NONE";
+}
+
 Game::Game() : current_floor(1), enemies_defeated_on_floor(0), combat_phase(CombatPhase::IDLE), game_running(false) {
 
 	std::cout << "Game Object constructed!" << std::endl;
@@ -54,6 +66,7 @@ Game::Game() : current_floor(1), enemies_defeated_on_floor(0), combat_phase(Comb
 		{StatType::TECHNOLOGY, 1}
 
 	};
+
 	player_mech = Mech("Player", player_base_stats);
 	std::cout << "`player_mech` initialized with `player_base_stats`." << std::endl;
 
@@ -108,6 +121,12 @@ void Game::loadData(const std::string& item_file_path, const std::string& boss_f
 				tpl->base_stats[stringToStatType(stat_key_str)] = stat_value.get<double>();
 			}
 		}
+		std::cout << "\n --- Item Template Added ---" << std::endl;
+		std::cout << "ID: " << tpl->id << std::endl;
+		std::cout << "NAME: " << tpl->name << std::endl;
+		std::cout << "DESCRIPTION: " << tpl->description << std::endl;
+		std::cout << "slot: " << equipmentSlotToString(tpl->slot) << std::endl;
+		std::cout << "required_tech: " << tpl->required_tech << std::endl;
 		item_templates.push_back(tpl);
 	}
 	std::cout << "Loaded " + std::to_string(item_templates.size()) + " item_templates." << std::endl;
@@ -145,9 +164,7 @@ void Game::loadData(const std::string& item_file_path, const std::string& boss_f
 bool Game::startGame() {
 	std::cerr << "DEBUG: Game::startGame() called." << std::endl;
 	std::lock_guard<std::mutex> lock(game_state_mutex); // Protect game_running state
-	std::cerr << "DEBUG: Game::startGame() acquired mutex." << std::endl;
 	if (!game_running) {
-		std::cerr << "DEBUG: Game::startGame() - game_running is false, proceed to start." << std::endl;
 		game_running = true;
 		std::cerr << "DEBUG: Game::startGame() - game_running is SET to true." << std::endl;
 		// NOTE(MSR): It's important that game_loop itself doesn't re-spawn the first enemy
@@ -163,6 +180,19 @@ bool Game::startGame() {
 		try {
 			game_thread = std::thread(&Game::gameLoop, this);
 			std::cerr << "DEBUG: Game::startGame() - game_thread object CREATED." << std::endl;
+
+			// Equip some basic items on player mech
+			Equipment& player_mech_equipment = player_mech.getEquipment();
+			std::cout << "\nEquiping basic loadout onto player mech" << std::endl;
+			// WARN(MSR): For now hardcoding this in but later having a starter loadout for each mech is the goal.
+			
+			auto common_laser_gun_item = std::make_shared<Item>(item_templates[0], Rarity::COMMON);
+			player_mech_equipment.equip(common_laser_gun_item);
+			player_mech_equipment.equip(std::make_shared<Item>(item_templates[2], Rarity::COMMON));
+			player_mech_equipment.equip(std::make_shared<Item>(item_templates[3], Rarity::COMMON));
+
+			player_mech.printCurrentEquipment();
+
 
 		} catch (const std::system_error& e) {
 			std::cerr << "FATAL ERROR: Game::startGame() - std::system_error while creating thread: " << e.what() << " (Code: " << e.code() << ")" << std::endl;
@@ -185,6 +215,7 @@ bool Game::startGame() {
 		std::cerr << "DEBUG: Game::startGame() - game_running was already true. Not starting again." << std::endl;
 		return false; // Already running or failed to start
 	}
+
 }
 
 void Game::stopGameLoop() {
@@ -199,9 +230,9 @@ bool Game::isGameRunning() const {
 }
 
 void Game::gameLoop() {
-	std::cerr<< "DEBUG: Game::gameLoop() THEAD STARTED." << std::endl;
+	std::cerr<< "DEBUG: Game::gameLoop() THREAD STARTED." << std::endl;
 	auto last_time = std::chrono::high_resolution_clock::now();
-	std::this_thread::sleep_for(std::chrono::milliseconds(5000)); // Wait for main thread to start up then this.
+	std::this_thread::sleep_for(std::chrono::milliseconds(INITIAL_GAMELOOP_DELAY_MS)); // Wait for main thread to start up then this.
 	while (game_running) {
 		auto current_time = std::chrono::high_resolution_clock::now();
 		std::chrono::duration<double> elapsed = current_time - last_time;
@@ -211,7 +242,7 @@ void Game::gameLoop() {
 		gameTick(delta_time);
 
 		// Cap update rate slightly to prevent 100% CPU usage on one core if gameTick is too fast
-		std::this_thread::sleep_for(std::chrono::milliseconds(30)); // Approx 33 FPS for game logic
+		std::this_thread::sleep_for(std::chrono::milliseconds(GAMELOOP_DELAY_MS)); // Approx 33 FPS for game logic
 	}
 	std::cerr << "DEBUG: Game::gameLoop() THREAD EXITED." << std::endl;
 }
@@ -254,6 +285,7 @@ void Game::gameTick(double delta_time) {
 }
 
 void Game::startCombat() {
+	std::cout << std::endl;
 	std::cout << " ----------------------------- " << std::endl;
 	std::cout << "Starting new combat encounter..." << std::endl;
 
@@ -395,6 +427,7 @@ void Game::awardLoot() {
 	} else {
 		std::cout << "No loot dropped this time." << std::endl;
 	}
+	std::this_thread::sleep_for(std::chrono::milliseconds(AWARDLOOT_DELAY_MS)); // Adding small delay so that awarded loot is given time to be read.
 }
 
 std::shared_ptr<Item> Game::generateRandomItem() {
@@ -417,7 +450,7 @@ std::shared_ptr<Item> Game::generateRandomItem() {
 	std::shared_ptr<const ItemTemplate> chosen_template = item_templates[template_index];
 
 	auto new_item = std::make_shared<Item>(chosen_template, chosen_rarity);
-	// Item consturctor calls generateInstanceStats
+	// Item constructor calls generateInstanceStats
 	return new_item;
 }
 

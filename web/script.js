@@ -1,6 +1,6 @@
 const API_GAMESTATE_ENDPOINT = '/api/gamestate';
 const API_STARTGAME_ENDPOINT = '/api/startgame';
-const POLLING_INTERVAL = 800; // Poll every 800 millisecond 
+const POLLING_INTERVAL = 400; // Poll every 400 millisecond 
 
 const startScreen = document.getElementById('start-screen');
 const gameScreen = document.getElementById('game-screen');
@@ -164,9 +164,3 @@ function startPollingGameState() {
 
 // --- Initialization ---
 startGameButton.addEventListener('click', handleStartGame);
-
-//startPollingGameState();
-
-// Start polling
-//fetchGameState(); // Initial fetch
-//setInterval(fetchGameState, POLLING_INTERVAL);

@@ -1,6 +1,7 @@
 #ifndef EQUIPMENT_H
 #define EQUIPMENT_H
 
+#include <iostream>
 #include <map>
 #include <memory>
 #include "Item.h"

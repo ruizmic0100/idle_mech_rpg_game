@@ -8,7 +8,7 @@
 Mech::Mech(std::string n, Stats base) {
 	name = n;
 	base_stats = base;
-	equipment = std::make_unique<Equipment>();
+	equipment = std::make_unique<Equipment>(); // RAII empty equipment
 
 	resetCombatState();
 
@@ -23,8 +23,6 @@ std::string Mech::getName() const {
 const Stats& Mech::getBaseStats() const {
 	return base_stats;
 }
-
-// TODO(MSR): getEquipment()
 
 double Mech::getCurrentHp() const {
 	return current_hp;
@@ -171,4 +169,57 @@ double Mech::calculateAttackDamage() const {
 bool Mech::canEquip(const Item& item) const {
 	// This is a simplified check. A real system might check slot availability, item type restrictions, etc.
 	return getStat(getTotalStats(), StatType::TECHNOLOGY) >= item.getRequiredTech();
+}
+
+// Prints current equipment
+void Mech::printCurrentEquipment() const {
+	std::cout << "\n--- Current Player Loadout ---" << std::endl;
+	std::string head_slot = "NONE";
+	std::string chest_slot = "NONE";
+	std::string arms_slot = "NONE";
+	std::string legs_slot = "NONE";
+	std::string generator_slot = "NONE";
+	std::string left_arm_weapon_slot = "NONE";
+	std::string right_arm_weapon_slot = "NONE";
+	std::string left_shoulder_weapon_slot = "NONE";
+	std::string right_shoulder_weapon_slot = "NONE";
+
+	if (equipment->getItem(EquipmentSlot::HEAD)) {
+		head_slot = equipment->getItem(EquipmentSlot::HEAD)->getName();
+	}
+	if (equipment->getItem(EquipmentSlot::CHEST)) {
+		chest_slot = equipment->getItem(EquipmentSlot::CHEST)->getName();
+	}
+	if (equipment->getItem(EquipmentSlot::ARMS)) {
+		arms_slot = equipment->getItem(EquipmentSlot::ARMS)->getName();
+	}
+	if (equipment->getItem(EquipmentSlot::LEGS)) {
+		legs_slot = equipment->getItem(EquipmentSlot::LEGS)->getName();
+	}
+	if (equipment->getItem(EquipmentSlot::GENERATOR)) {
+		generator_slot = equipment->getItem(EquipmentSlot::GENERATOR)->getName();
+	}
+	if (equipment->getItem(EquipmentSlot::LEFT_ARM_WEAPON)) {
+		left_arm_weapon_slot = equipment->getItem(EquipmentSlot::LEFT_ARM_WEAPON)->getName();
+	}
+	if (equipment->getItem(EquipmentSlot::RIGHT_ARM_WEAPON)) {
+		right_arm_weapon_slot = equipment->getItem(EquipmentSlot::RIGHT_ARM_WEAPON)->getName();
+	}
+	if (equipment->getItem(EquipmentSlot::LEFT_SHOULDER_WEAPON)) {
+		left_shoulder_weapon_slot = equipment->getItem(EquipmentSlot::LEFT_SHOULDER_WEAPON)->getName();
+	}
+	if (equipment->getItem(EquipmentSlot::RIGHT_SHOULDER_WEAPON)) {
+		right_shoulder_weapon_slot = equipment->getItem(EquipmentSlot::RIGHT_SHOULDER_WEAPON)->getName();
+	}
+
+	std::cout << "HEAD: " << head_slot << std::endl;
+	std::cout << "CHEST: " << chest_slot << std::endl;
+	std::cout << "ARMS: " << arms_slot << std::endl;
+	std::cout << "LEGS: " << legs_slot << std::endl;
+	std::cout << "GENERATOR: " << generator_slot << std::endl;
+	std::cout << "LEFT_ARM_WEAPON: " << left_arm_weapon_slot << std::endl;
+	std::cout << "RIGHT_ARM_WEAPON: " << right_arm_weapon_slot << std::endl;
+	std::cout << "LEFT_SHOULDER_WEAPON: " << left_shoulder_weapon_slot << std::endl;
+	std::cout << "RIGHT_SHOULDER_WEAPON: " << right_shoulder_weapon_slot << std::endl;
+	std::cout << "---" << std::endl;
 }

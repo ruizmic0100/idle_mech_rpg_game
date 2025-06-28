@@ -4,6 +4,8 @@
 #include <map>
 #include <string>
 
+#define TOTAL_NUMBER_OF_SLOTS 9
+
 enum class StatType {
 	HEALTH, ARMOR, ENERGY_SHIELD, ATTACK,
 	ATTACK_SPEED, MOBILITY, ENERGY, ENERGY_RECOVERY,
