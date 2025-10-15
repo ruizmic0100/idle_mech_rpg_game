@@ -237,6 +237,25 @@ int main() {
 		return res;
 	});
 
+	CROW_ROUTE(app, "/web/media/<string>")
+	([&](const crow::request& req, crow::response& res, std::string filename) {
+		std::string imagePath = "web/media/" + filename;
+		std::ifstream file(imagePath, std::ios::binary);
+
+		if (file.is_open()) {
+			std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+
+			res.set_header("Content-Type", "image/jpeg");
+
+			res.write(content);
+			res.end();
+		} else {
+			res.code = 404;
+			res.write("Image not found");
+			res.end();
+		}
+	 });
+
 	// Run the server on port 18080
 	// Make it run threaded so it doesn't block the main thread
 	std::cout << "Web server running on http://localhost:18080" << std::endl;
