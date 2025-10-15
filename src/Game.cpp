@@ -284,6 +284,11 @@ void Game::gameTick(double delta_time) {
 	}
 }
 
+/**
+	1. Checks for how many enemies defeated on the floor to see if it needs to spawn the boss or the next enemy
+	2. Resets the player and current_enemy's combat state
+	3. Determines who goes first by using the StatType::MOBILITY stat
+  **/
 void Game::startCombat() {
 	std::cout << std::endl;
 	std::cout << " ----------------------------- " << std::endl;
@@ -317,6 +322,10 @@ void Game::startCombat() {
 	time_since_last_action = 0.0;
 }
 
+/**
+	1. Checks for the CombatPhase. (CombatPhase::PLAYER_TURN or CombatPhase::ENEMY_TURN)
+	2. 
+  **/
 void Game::handleCombat(double delta_time) {
 	time_since_last_action += delta_time;
 
