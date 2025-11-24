@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -7,47 +6,73 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-	<div id="start-screen">
-		<h1>Mech Idle RPG</h1>
-		<p>Welcome, Pilot!</p>
-		<button id="start-game-button">Start Game</button>
-		<p id="start-message"></p>
-	</div>
+    <div id="start-screen">
+        <h1>Mech Command Interface</h1>
+        <p>System Offline. Initialize startup sequence.</p>
+        <br>
+        <button id="start-game-button">Initialize System</button>
+        <p id="start-message"></p>
+    </div>
 
-	<div id="game-screen" style="display: none;"> <!-- Initially hidden -->
-		<h1>Mech Idle RPG</h1>
+    <div id="game-screen" style="display: none;">
+        <!-- Top Bar: Progress -->
+        <div class="progress-panel" style="grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center;">
+            <span>SECTOR: <strong id="current-floor" style="color: #fff;">1</strong></span>
+            <span>THREAT LEVEL: <strong id="enemies-defeated" style="color: #fff;">0</strong></span>
+        </div>
 
-		<div class="container">
-			<div class="mech-panel" id="player-panel">
-				<div id="player-potrait" class="player-mech-potrait"></div>
-				<h2>Player Mech: <span id="player-name">--</span></h2>
-				<p>HP: <span id="player-hp">--</span> / <span id="player-max-hp">--</span></p>
-				<p>Shield: <span id="player-shield">--</span> / <span id="player-max-shield">--</span></p>
-				<h3>Stats</h3>
-				<pre id="player-stats">--</pre>
-				 <h3>Equipment</h3>
-				<pre id="player-equipment">--</pre>
-			</div>
+        <!-- Player Panel -->
+        <div class="mech-panel" id="player-panel" style="border-top: 3px solid var(--accent-blue);">
+            <h2><span id="player-name">Player</span></h2>
+            
+            <!-- Visual Bars -->
+            <div class="bar-group">
+                <small>Hull Integrity</small>
+                <div class="bar-container"><div id="p-hp-bar" class="bar-fill hp-fill" style="width: 100%;"></div></div>
+                <small>Energy Shield</small>
+                <div class="bar-container"><div id="p-shield-bar" class="bar-fill shield-fill" style="width: 100%;"></div></div>
+            </div>
 
-			<div class="mech-panel" id="enemy-panel">
-				<div id="enemy-potrait" class="enemy-mech-potrait"></div>
-				<h2>Enemy Mech: <span id="enemy-name">--</span> <span id="enemy-is-boss"></span></h2>
-				<p>HP: <span id="enemy-hp">--</span> / <span id="enemy-max-hp">--</span></p>
-				<p>Shield: <span id="enemy-shield">--</span> / <span id="enemy-max-shield">--</span></p>
-			</div>
-		</div>
+            <h3>Systems Status</h3>
+            <div id="player-stats" class="stats-grid"></div>
 
-		<div class="progress-panel">
-			<p>Floor: <span id="current-floor">--</span> | Enemies Defeated: <span id="enemies-defeated">--</span></p>
-		</div>
+            <h3 style="margin-top: 20px;">Loadout <small style="font-size:0.6em; color:#666;">(CLICK TO CONFIGURE)</small></h3>
+            <div id="player-equipment-list" class="equipment-list"></div>
+        </div>
 
-		<div class="log-panel">
-			<h3>Game Log</h3>
-			<ul id="game-log">
-				<li>Waiting for game data...</li>
-			</ul>
-		</div>
-	</div>
+        <!-- Enemy Panel -->
+        <div class="mech-panel" id="enemy-panel" style="border-top: 3px solid var(--accent-red);">
+            <h2><span id="enemy-name">Target</span> <span id="enemy-is-boss" style="color:red"></span></h2>
+            
+            <div class="bar-group">
+                <small>Hull Integrity</small>
+                <div class="bar-container"><div id="e-hp-bar" class="bar-fill hp-fill" style="width: 100%;"></div></div>
+                <small>Energy Shield</small>
+                <div class="bar-container"><div id="e-shield-bar" class="bar-fill shield-fill" style="width: 100%;"></div></div>
+            </div>
+            
+            <div id="enemy-stats" class="stats-grid"></div>
+        </div>
+
+        <!-- Logs -->
+        <div class="log-panel" style="grid-column: 1 / -1;">
+            <h3>Combat Log</h3>
+            <ul id="game-log"></ul>
+        </div>
+    </div>
+
+    <!-- The Equipment Popup Modal -->
+    <div id="equipment-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-title">Select Equipment</h2>
+                <span class="close-modal" onclick="document.getElementById('equipment-modal').style.display='none'">&times;</span>
+            </div>
+            <div id="inventory-list">
+                <!-- Inventory items injected here via JS -->
+            </div>
+        </div>
+    </div>
 
     <script src="script.js"></script>
 </body>

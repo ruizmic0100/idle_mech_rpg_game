@@ -40,6 +40,15 @@ struct BossData {
 	Stats stats;
 };
 
+// Helper struct for web inventory
+struct InventoryItemWeb {
+	int index;
+	std::string name;
+	std::string slot;
+	std::string rarity;
+	int tech;
+};
+
 struct GameStateForWeb { // Data structure to send to frontend
 	// Player Info
 	std::string player_name;
@@ -50,6 +59,9 @@ struct GameStateForWeb { // Data structure to send to frontend
 	Stats player_total_stats;
 	std::map<EquipmentSlot, std::string> player_equipment_names; // Simple view
 
+	// Inventory for web popup
+	std::vector<InventoryItemWeb> inventory;
+
 	// Enemy Info
 	std::string enemy_name;
 	double enemy_hp;
@@ -57,6 +69,7 @@ struct GameStateForWeb { // Data structure to send to frontend
 	double enemy_shield;
 	double enemy_max_shield;
 	bool enemy_is_boss;
+	Stats enemy_stats; // Send enemy stats too for the dashboard
 
 	// Game Progress
 	int current_floor;
@@ -78,7 +91,9 @@ public:
 
 
 	GameStateForWeb getGameState(); // Thread-safe getter for web server
-
+	
+	// Thread-safe equip action
+	bool playerEquipItem(int inventory_index);
 
 	// Debug methods
 	void print_player_mech_stats();

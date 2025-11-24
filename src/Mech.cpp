@@ -9,9 +9,7 @@ Mech::Mech(std::string n, Stats base) {
 	name = n;
 	base_stats = base;
 	equipment = std::make_unique<Equipment>(); // RAII empty equipment
-
 	resetCombatState();
-
 	std::cout << "Mech '" << this->name << "' created." << std::endl;
 }
 
@@ -52,6 +50,30 @@ Equipment& Mech::getEquipment() {
 		// This case should ideally not be hit if constructors always init equipment
 	}
 	return *equipment; // Dereference the unique_ptr
+}
+
+// -- Inventory Implementation --
+void Mech::addToInventory(std::shared_ptr<Item> item) {
+	if (item) {
+		inventory.push_back(item);
+	}
+}
+
+std::shared_ptr<Item> Mech::getItemFromInventory(int index) {
+	if (index >= 0 && index < inventory.size()) {
+		return inventory[index];
+	}
+	return nullptr;
+}
+
+void Mech::removeFromInventory(int index) {
+	if (index >= 0 && index < inventory.size()) {
+		inventory.erase(inventory.begin() + index);
+	}
+}
+
+const std::vector<std::shared_ptr<Item>>& Mech::getInventory() const {
+	return inventory;
 }
 
 // --- Core Logic ---

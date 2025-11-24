@@ -41,10 +41,20 @@ public:
 	// Getter for debugging
 	const std::unique_ptr<Equipment>& getEquipmentInternalPtr() const { return equipment; }
 
+	// -- Inventory Methods --
+	void addToInventory(std::shared_ptr<Item> item);
+	std::shared_ptr<Item> getItemFromInventory(int index);
+	// Remove item at index from inventor vector
+	void removeFromInventory(int index);
+	const std::vector<std::shared_ptr<Item>>& getInventory() const;
+
 private:
 	std::string name;
 	Stats base_stats;
 	std::unique_ptr<Equipment> equipment; // Use unique_ptr for ownership
+
+	// Storage for unequipped items
+	std::vector<std::shared_ptr<Item>> inventory;
 
 	// Live stats
 	double current_hp = 0;

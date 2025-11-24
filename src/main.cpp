@@ -73,6 +73,17 @@ void to_json(json& j, const Stats& s) {
 	}
 }
 
+// Conversion function for InventoryItemWeb so that the frontend can consume it
+void to_json(json& j, const InventoryItemWeb& item) {
+	j = json{
+		{"index", item.index},
+		{"name", item.name},
+		{"slot", item.slot},
+		{"rarity", item.rarity},
+		{"tech", item.tech}
+	};
+}
+
 // Main conversion function for GameStateForWeb
 void to_json(json& j, const GameStateForWeb& gs) {
 	json player_equip = json::object();
@@ -97,7 +108,8 @@ void to_json(json& j, const GameStateForWeb& gs) {
 			{"max_hp", gs.enemy_max_hp},
 			{"shield", gs.enemy_shield},
 			{"max_shield", gs.enemy_max_shield},
-			{"is_boss", gs.enemy_is_boss}
+			{"is_boss", gs.enemy_is_boss},
+			{"stats", gs.enemy_stats}
 		}},
 		{"progress", {
 			{"floor", gs.current_floor},
@@ -204,6 +216,24 @@ int main() {
 			return crow::response(409, "Game already running or failed to start."); // 409 conflict
 		}
 	 });
+
+	// Equip API
+	CROW_ROUTE(app, "/api/equip").methods(crow::HTTPMethod::Post)
+	([&game_instance](const crow::request& req) {
+		try {
+			auto body = json::parse(req.body);
+			if (!body.contains("index")) return crow::response(400, "Missing index");
+
+			int idx = body["index"].get<int>();
+			if (game_instance.playerEquipItem(idx)) {
+				return crow::response(200, "Equipped");
+			} else {
+				return crow::response(400, "Failed to equip");
+			}
+		} catch(...) {
+			return crow::response(500, "Server Error");
+		}
+	});
 
 	// Simple route to serve the HTML file (adjust path if needed)
 	CROW_ROUTE(app, "/")

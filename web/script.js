@@ -1,166 +1,194 @@
 const API_GAMESTATE_ENDPOINT = '/api/gamestate';
 const API_STARTGAME_ENDPOINT = '/api/startgame';
-const POLLING_INTERVAL = 400; // Poll every 400 millisecond 
+const API_EQUIP_ENDPOINT = '/api/equip';
+const POLLING_INTERVAL = 500; 
 
 const startScreen = document.getElementById('start-screen');
 const gameScreen = document.getElementById('game-screen');
 const startGameButton = document.getElementById('start-game-button');
 const startMessageElement = document.getElementById('start-message');
+const modal = document.getElementById('equipment-modal');
 
-let gameStateIntervalId = null // To store the interval ID for polling
+let gameStateIntervalId = null;
+let currentInventory = []; // Stores the inventory list from the backend
+let currentSlotOpening = null; // Tracks which slot we are trying to equip
 
-// --- UI Update Functions ---
-
+// --- Formatting Helpers ---
 function formatStats(stats) {
     let output = '';
+    // Create div elements string for the grid
     for (const key in stats) {
-        // Format numbers nicely (e.g., armor as percentage)
         let value = stats[key];
-        if (key === 'ARMOR') {
-            value = (value * 100).toFixed(1) + '%';
-        } else if (Number.isFinite(value) && Math.abs(value) > 0.01) {
-             // Avoid scientific notation for small numbers, round others
-             value = Number(value.toFixed(2));
-        }
-        output += `${key.padEnd(18)}: ${value}\n`;
+        if (key === 'ARMOR') value = (value * 100).toFixed(1) + '%';
+        else if (Number.isFinite(value) && Math.abs(value) > 0.01) value = Number(value.toFixed(1));
+        
+        // Cleanup key names
+        let niceKey = key.replace('_', ' ');
+        output += `<div>${niceKey}</div><div style="text-align:right; color:#fff;">${value}</div>`;
     }
     return output;
 }
 
-function formatEquipment(equipment) {
-    let output = '';
-    for (const slot in equipment) {
-         output += `${slot.padEnd(25)}: ${equipment[slot] || '(Empty)'}\n`;
-    }
-     return output;
-}
-
-
+// --- Main UI Update ---
 function updateUI(data) {
-	if (data.player_name === "Game Not Started") {
-		showStartScreen();
-		const logList = document.getElementById('game-log'); // Still update log on start screen
-		logList.innerHTML = '';
-		data.log.forEach(entry => {
-			const li = document.createElement('li');
-			li.textContent = entry;
-			logList.appendChild(li);
-		});
-		// Ensure game screen elements are cleared or show placeholder if game not started
-		document.getElementById('player-name').textContent = '--';
-		document.getElementById('player-hp').textContent = '--';
-		document.getElementById('player-max-hp').textContent = '--';
-		document.getElementById('player-shield').textContent = '--';
-		document.getElementById('player-max-shield').textContent = '--';
-		document.getElementById('player-stats').textContent = '--';
-		document.getElementById('player-equipment').textContent = '--';
-		
-		return;
-	}
+    if (data.player.name === "Game Not Started") {
+        showStartScreen();
+        return;
+    }
 
-	showGameScreen(); // If game is started, ensure game screen is visible
+    showGameScreen();
 
-    // Player Panel
+    // 1. Update Text Stats
     document.getElementById('player-name').textContent = data.player.name;
-    document.getElementById('player-hp').textContent = Math.max(0, data.player.hp).toFixed(0);
-    document.getElementById('player-max-hp').textContent = data.player.max_hp.toFixed(0);
-    document.getElementById('player-shield').textContent = Math.max(0, data.player.shield).toFixed(0);
-    document.getElementById('player-max-shield').textContent = data.player.max_shield.toFixed(0);
-    document.getElementById('player-stats').textContent = formatStats(data.player.stats);
-    document.getElementById('player-equipment').textContent = formatEquipment(data.player.equipment);
-
-
-    // Enemy Panel
+    document.getElementById('player-stats').innerHTML = formatStats(data.player.stats);
+    
     document.getElementById('enemy-name').textContent = data.enemy.name;
-    document.getElementById('enemy-hp').textContent = Math.max(0, data.enemy.hp).toFixed(0);
-    document.getElementById('enemy-max-hp').textContent = data.enemy.max_hp.toFixed(0);
-    document.getElementById('enemy-shield').textContent = Math.max(0, data.enemy.shield).toFixed(0);
-    document.getElementById('enemy-max-shield').textContent = data.enemy.max_shield.toFixed(0);
-    document.getElementById('enemy-is-boss').textContent = data.enemy.is_boss ? '[BOSS]' : '';
+    document.getElementById('enemy-is-boss').textContent = data.enemy.is_boss ? '[WARNING: BOSS]' : '';
+    document.getElementById('enemy-stats').innerHTML = formatStats(data.enemy.stats || {});
 
-
-    // Progress Panel
     document.getElementById('current-floor').textContent = data.progress.floor;
     document.getElementById('enemies-defeated').textContent = data.progress.enemies_defeated;
 
-    // Log Panel
+    // 2. Update Progress Bars
+    const setBar = (id, current, max) => {
+        const pct = Math.max(0, Math.min(100, (current / max) * 100));
+        document.getElementById(id).style.width = `${pct}%`;
+    };
+    setBar('p-hp-bar', data.player.hp, data.player.max_hp);
+    setBar('p-shield-bar', data.player.shield, data.player.max_shield);
+    setBar('e-hp-bar', data.enemy.hp, data.enemy.max_hp);
+    setBar('e-shield-bar', data.enemy.shield, data.enemy.max_shield);
+
+    // 3. Update Equipment List (Clickable)
+    const equipList = document.getElementById('player-equipment-list');
+    equipList.innerHTML = '';
+    
+    // We iterate a fixed list to keep order consistent
+    const slots = ["HEAD", "CHEST", "ARMS", "LEGS", "GENERATOR", "LEFT_ARM_WEAPON", "RIGHT_ARM_WEAPON", "LEFT_SHOULDER_WEAPON", "RIGHT_SHOULDER_WEAPON"];
+    
+    slots.forEach(slot => {
+        const itemStr = data.player.equipment[slot] || "Empty System";
+        const div = document.createElement('div');
+        div.className = 'equip-slot';
+        div.innerHTML = `<span class="slot-label">${slot}</span> <span class="item-name">${itemStr}</span>`;
+        div.onclick = () => openEquipModal(slot);
+        equipList.appendChild(div);
+    });
+
+    // 4. Store Inventory for the Modal
+    currentInventory = data.inventory || []; // Ensure we handle empty inventory
+
+    // 5. Update Log
     const logList = document.getElementById('game-log');
-    logList.innerHTML = ''; // Clear previous logs
+    logList.innerHTML = '';
     data.log.forEach(entry => {
         const li = document.createElement('li');
-        li.textContent = entry;
+        li.textContent = `> ${entry}`;
         logList.appendChild(li);
     });
-     // Auto-scroll to bottom
     logList.scrollTop = logList.scrollHeight;
 }
 
+// --- Modal Logic ---
+function openEquipModal(slot) {
+    currentSlotOpening = slot;
+    document.getElementById('modal-title').innerText = `Equip: ${slot}`;
+    modal.style.display = 'block';
+    
+    const list = document.getElementById('inventory-list');
+    list.innerHTML = '';
+    
+    // Filter inventory to match the slot we clicked
+    const relevantItems = currentInventory.filter(item => item.slot === slot);
+    
+    if (relevantItems.length === 0) {
+        list.innerHTML = '<div style="color:#666; text-align:center; padding:20px;">No compatible items in cargo.</div>';
+    } else {
+        relevantItems.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'inventory-item';
+            div.innerHTML = `
+                <span class="inventory-item-name rarity-${item.rarity}">${item.name}</span>
+                <span class="inventory-item-stats">Tech Lvl: ${item.tech || 1}</span>
+            `;
+            div.onclick = () => equipItem(item.index);
+            list.appendChild(div);
+        });
+    }
+}
+
+async function equipItem(index) {
+    try {
+        const response = await fetch(API_EQUIP_ENDPOINT, {
+            method: 'POST',
+            body: JSON.stringify({ index: index }),
+            headers: { 'Content-Type': 'application/json' }
+        });
+        
+        if(response.ok) {
+            modal.style.display = 'none';
+            fetchGameState(); // Update immediately
+        } else {
+            alert("Failed to equip item.");
+        }
+    } catch (e) {
+        console.error(e);
+    }
+}
+
+// --- Game State Handling ---
 async function fetchGameState() {
-	console.log(`fetchGameSate called`);
     try {
         const response = await fetch(API_GAMESTATE_ENDPOINT);
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-        }
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const data = await response.json();
         updateUI(data);
-
-		// If game is now running and wasn't before, make sure polling is active
-		if (data.player_name !== "Game Not Started" && !gameStateIntervalId) {
-			startPollingGameState(); // Should already be polling if we reach here usually
-		}
+        
+        if (data.player.name !== "Game Not Started" && !gameStateIntervalId) {
+            startPollingGameState();
+        }
     } catch (error) {
-        console.error("Failed to fetch game state:", error);
-        // Maybe display an error message on the page
-        const logList = document.getElementById('game-log');
-		logList.innerHTML = ''; // Clear
-        const li = document.createElement('li');
-        li.textContent = `Error fetching data: ${error.message}`;
-        li.style.color = 'red';
-        logList.appendChild(li);
-		showStartScreen(); // If error fetching, might indicate game isn't ready, show start
+        console.error("Fetch error:", error);
     }
 }
 
 async function handleStartGame() {
-	startGameButton.disabled = true;
-	startMessageElement.textContent = 'Starting game...';
-	try {
-		const response = await fetch(API_STARTGAME_ENDPOINT, { method: 'POST' });
-		if (response.ok) {
-			startMessageElement.textContent = 'Game started! Loading...';
-			showGameScreen();
-			fetchGameState(); // Fetch state immediately after starting
-			startPollingGameState(); // Start regular polling
-		} else {
-			const errorText = await resposne.text();
-			startMessageElement.textContent = `Failed to start game: ${errorText} (Status: ${response.status})`;
-			startGameButton.disabled = false;
-		}
-	} catch (error) {
-		console.error("Error starting game:", error);
-		startMessageElement.textContent = `Error starting game: ${error.message}`;
-		startGameButton.disabeld = false;
-	}
+    startGameButton.disabled = true;
+    startMessageElement.textContent = 'Initializing...';
+    try {
+        const response = await fetch(API_STARTGAME_ENDPOINT, { method: 'POST' });
+        if (response.ok) {
+            showGameScreen();
+            fetchGameState();
+        } else {
+            startMessageElement.textContent = 'Failed to initialize.';
+            startGameButton.disabled = false;
+        }
+    } catch (error) {
+        startMessageElement.textContent = error.message;
+    }
 }
 
 function showStartScreen() {
-	startScreen.style.display = 'block';
-	gameScreen.style.display = 'none';
+    startScreen.style.display = 'block';
+    gameScreen.style.display = 'none';
 }
 
 function showGameScreen() {
-	startScreen.style.display = 'none';
-	gameScreen.style.display = 'block';
+    startScreen.style.display = 'none';
+    gameScreen.style.display = 'block';
 }
 
 function startPollingGameState() {
-	if (gameStateIntervalId) {
-		clearInterval(gameStateIntervalId); // Clear existing interval if any
-	}
-	fetchGameState(); // Initial fetch
-	gameStateIntervalId = setInterval(fetchGameState, POLLING_INTERVAL);
+    if (gameStateIntervalId) clearInterval(gameStateIntervalId);
+    gameStateIntervalId = setInterval(fetchGameState, POLLING_INTERVAL);
 }
 
-// --- Initialization ---
+// Close modal if clicked outside
+window.onclick = function(event) {
+    if (event.target == modal) {
+        modal.style.display = "none";
+    }
+}
+
 startGameButton.addEventListener('click', handleStartGame);

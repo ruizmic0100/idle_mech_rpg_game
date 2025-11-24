@@ -173,6 +173,7 @@ bool Game::startGame() {
 		current_floor = 1;
 		enemies_defeated_on_floor = 0;
 		combat_phase = CombatPhase::IDLE; // Reset Combat phase
+		game_log.clear();
 		std::cerr << "DEBUG: Game::StartGame() - Game state reset." << std::endl;
 
 		// WARN(MSR): current_enemy might need to be cleared or reset if a fully fresh start is wanted
@@ -181,7 +182,7 @@ bool Game::startGame() {
 			game_thread = std::thread(&Game::gameLoop, this);
 			std::cerr << "DEBUG: Game::startGame() - game_thread object CREATED." << std::endl;
 
-			// Equip some basic items on player mech
+			// Give starter gear to player
 			Equipment& player_mech_equipment = player_mech.getEquipment();
 			std::cout << "\nEquiping basic loadout onto player mech" << std::endl;
 			// WARN(MSR): For now hardcoding this in but later having a starter loadout for each mech is the goal.
@@ -463,6 +464,33 @@ std::shared_ptr<Item> Game::generateRandomItem() {
 	return new_item;
 }
 
+// -- Equip Logic --
+bool Game::playerEquipItem(int inventory_index) {
+	std::lock_guard<std::mutex> lock(game_state_mutex);
+
+	auto item_to_equip = player_mech.getItemFromInventory(inventory_index);
+	if (!item_to_equip) return false;
+
+	// Remove from inventory first
+	player_mech.removeFromInventory(inventory_index);
+
+	// Equip and get old item back
+	auto old_item = player_mech.getEquipment().equip(item_to_equip);
+
+	// Put old item in inventory if it exists
+	if (old_item) {
+		player_mech.addToInventory(old_item);
+	}
+
+	logEvent("Equipped " + item_to_equip->getName());
+	return true;
+}
+
+void Game::logEvent(const std::string& msg) {
+	game_log.push_back(msg);
+	if (game_log.size() > MAX_LOG_SIZE) game_log.erase(game_log.begin());
+}
+
 GameStateForWeb Game::getGameState() {
 	std::lock_guard<std::mutex> lock(game_state_mutex);
 	GameStateForWeb state;
@@ -505,6 +533,20 @@ GameStateForWeb Game::getGameState() {
 			state.player_equipment_names[pair.first] = pair.second->getName() + " (" + rarityToString(pair.second->getRarity()) + ")";
 		} else {
 			state.player_equipment_names[pair.first] = "(Empty)";
+		}
+	}
+
+	// Populate Inventory for Web
+	const auto& inv = player_mech.getInventory();
+	for (size_t i = 0; i < inv.size(); i++) {
+		if (inv[i]) {
+			InventoryItemWeb item_web;
+			item_web.index = static_cast<int>(i);
+			item_web.name = inv[i]->getName();
+			item_web.slot = equipmentSlotToString(inv[i]->getSlot());
+			item_web.rarity = rarityToString(inv[i]->getRarity());
+			item_web.tech = inv[i]->getRequiredTech();
+			state.inventory.push_back(item_web);
 		}
 	}
 
