@@ -240,7 +240,9 @@ int main() {
 	([]() {
 		// Might want a more robust way to find/serve files
 		// Crow has crow::mustche for templating, but simple serve is used for now
-		auto page = crow::mustache::load("index.html");
+		//auto page = crow::mustache::load("index.html");
+		auto page = crow::mustache::load("main_menu.html");
+		
 		return page.render();
 	});
 

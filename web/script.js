@@ -13,6 +13,12 @@ let gameStateIntervalId = null;
 let currentInventory = []; // Stores the inventory list from the backend
 let currentSlotOpening = null; // Tracks which slot we are trying to equip
 
+// -- Damage Tracking Logic --
+// We track the previous state to calculate differences (damage/healing)
+let lastPlayerHp = null;
+let lastEnemyHp = null;
+let lastEnemyName = null;
+
 // --- Formatting Helpers ---
 function formatStats(stats) {
     let output = '';
@@ -29,6 +35,39 @@ function formatStats(stats) {
     return output;
 }
 
+// --- Visual Effect: Spawn Floating Text --
+function spawnFloatingText(targetElementId, text, type) {
+	const target = document.getElementById(targetElementId);
+	if (!target) return;
+	
+	const value = Math.round(text);
+	const el = document.createElement('div');
+	el.textContent = value;
+	el.className = `damage-popup ${type === 'heal' ? 'heal-text' : 'damage-text'}`;
+
+	// --- SCALING LOGIC FOR DAMAGE NUMBERS ---
+	// Base size is 1.5em
+	// Going to add 0.05em per point of damage
+	// Max cap at 5.0em
+	const baseSize = 1.5;
+	const sizeMultiplier = Math.min(3.5, value / 20); // Adjust '20' to change sensitivity
+	el.style.fontSize = `${baseSize + sizeMultiplier}em`;
+
+	// Randomize position slightly around the center
+	const randomX = 38 + (Math.random() * 20 - 10);
+	const randomY = 35 + (Math.random() * 20 - 10);
+
+	el.style.left = `${randomX}%`;
+	el.style.top = `${randomY}%`;
+
+	target.appendChild(el);
+
+	// Remove after animation finishes
+	setTimeout(() => {
+		el.remove();
+	}, 1000);
+}
+
 // --- Main UI Update ---
 function updateUI(data) {
     if (data.player.name === "Game Not Started") {
@@ -37,6 +76,33 @@ function updateUI(data) {
     }
 
     showGameScreen();
+
+	// 0. Check for Damage/Heals (Compare previous state vs current)
+	// Player Logic side
+	if (lastPlayerHp !== null) {
+		const diff = data.player.hp - lastPlayerHp;
+		if (diff < -0.25) { // Damage (tolerance for float errors)
+			// spawnFloatingText('player-panel', Math.abs(diff), 'damage');
+		} else if (diff > 0.25) { // Heal
+			// spawnFloatingText('player-panel', diff, 'heal');
+		}
+	}
+	lastPlayerHp = data.player.hp;
+
+	// Enemy Logic side
+	// If enemy name changed, its a new spawn, so reset tracker instead of showing damage
+	if (data.enemy.name !== lastEnemyName) {
+		lastEnemyName = data.enemy.name;
+		lastEnemyHp = data.enemy.hp; // Reset, don't show diff
+	} else {
+		if (lastEnemyHp !== null) {
+			const diff = data.enemy.hp - lastEnemyHp;
+			if (diff < -0.25) { // Enemy Took Damage
+				spawnFloatingText('enemy-panel', Math.abs(diff), 'damage');	
+			}
+		}
+		lastEnemyHp = data.enemy.hp;
+	}
 
     // 1. Update Text Stats
     document.getElementById('player-name').textContent = data.player.name;

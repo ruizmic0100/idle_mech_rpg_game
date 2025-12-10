@@ -42,6 +42,7 @@ h1, h2, h3 {
     border-radius: 8px;
     padding: 20px;
     box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+	position: relative;
 }
 
 /* Progress Bars (HP/Shield) */
@@ -206,3 +207,38 @@ h1, h2, h3 {
 .rarity-UNCOMMON { color: #2ecc71; }
 .rarity-RARE { color: #3498db; }
 .rarity-LEGENDARY { color: #f1c40f; text-shadow: 0 0 5px rgba(241, 196, 15, 0.5); }
+
+/* --- DAMAGE POPUPS --- */
+
+.damage-popup {
+	position: absolute;
+	font-family: var(--font-tech);
+	font-weight: bold;
+	font-size: 1.5em;
+	pointer-events: none; /* Let clicks pass through */
+	animation: floatUp 1s ease-out forwards;
+	z-index: 10;
+	text-shadow: 1px 1px 0 #000;
+}
+
+.damage-text {
+	color: var(--accent-red);
+}
+
+.heal-text {
+	color: #2ecc71;
+}
+
+@keyframes floatUp {
+	0% {
+		opacity: 1;
+		transform: translate(-50%, -50%) scale(0.5);
+	}
+	20% {
+		transform: translate(-50%, -80%) scale(1.2);
+	}
+	100% {
+		opacity: 0;
+		transform: translate(-50%, -150%) scale(1.0);
+	}
+}
