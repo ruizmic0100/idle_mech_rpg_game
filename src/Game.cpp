@@ -4,6 +4,7 @@
 #include <stdexcept> // For std::runtime_error
 
 #include "Game.h"
+#include "GameClasses.h"
 
 // Helper for JSON to Enum conversion
 StatType stringToStatType(const std::string& s) {
@@ -54,7 +55,7 @@ Game::Game() : current_floor(1), enemies_defeated_on_floor(0), combat_phase(Comb
 
 	// Initialize player mech with some basic default stats
 	Stats player_base_stats = {
-		{StatType::HEALTH, 200},
+		{StatType::HEALTH, 100},
 		{StatType::ARMOR, 1},
 		{StatType::ENERGY_SHIELD, 1},
 		{StatType::ATTACK, 1},
@@ -66,6 +67,9 @@ Game::Game() : current_floor(1), enemies_defeated_on_floor(0), combat_phase(Comb
 		{StatType::TECHNOLOGY, 1}
 
 	};
+
+	// Add in selected class stuff
+       	 	
 
 	player_mech = Mech("Player", player_base_stats);
 	std::cout << "`player_mech` initialized with `player_base_stats`." << std::endl;

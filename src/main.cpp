@@ -303,11 +303,13 @@ int main() {
 		if (!selected_class) {
 			return crow::response(400, "Error: No class selected.");
 		}
-
+		
 		std::string class_id = selected_class;
 		std::cout << "-----" << std::endl;
 		std::cout << "SELECTED_CLASS = " << class_id << std::endl;
 		std::cout << "-----" << std::endl;
+
+		// 2. Use player selection
 
 
 		std::cout << "Initializing game from request" << std::endl;
