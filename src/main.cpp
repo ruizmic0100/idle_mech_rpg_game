@@ -287,6 +287,41 @@ int main() {
 			res.end();
 		}
 	 });
+	
+	// Serve the class Selection Screen
+	CROW_ROUTE(app, "/new_game")([](){
+		crow::mustache::context ctx;
+		return crow::mustache::load("class_selection.html").render(ctx);	
+	});
+
+	// This will be called when the player clicks a specific class card
+	CROW_ROUTE(app, "/init_game")
+	([](const crow::request& req) {
+		// 1. Get the class from the URL parameters
+		auto selected_class = req.url_params.get("class");
+
+		if (!selected_class) {
+			return crow::response(400, "Error: No class selected.");
+		}
+
+		std::string class_id = selected_class;
+		std::cout << "-----" << std::endl;
+		std::cout << "SELECTED_CLASS = " << class_id << std::endl;
+		std::cout << "-----" << std::endl;
+
+
+		std::cout << "Initializing game from request" << std::endl;
+		crow::response res;
+		res.redirect("/game_dashboard");
+		return res;
+	 });
+
+	// The main game dashboard
+	CROW_ROUTE(app, "/game_dashboard")([](){
+		auto page = crow::mustache::load("index.html");
+
+		return page.render();
+	});
 
 	// Run the server on port 18080
 	// Make it run threaded so it doesn't block the main thread
