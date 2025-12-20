@@ -1,3 +1,6 @@
+#ifndef GAMECLASSES_H
+#define GAMECLASSES_H
+
 #include <string>
 #include <iostream>
 
@@ -23,10 +26,11 @@ struct PilotClass {
 };
 
 
-class ClassFactory {
+class PilotClassFactory {
 public:
    static PilotClass createPilotClass(std::string classId) {
 	PilotClass pC;
+	pC.id = classId;
 	pC.archetype = ClassArchetype::None;
 
 	// --- 1. THE BULWARK (Tank) ---
@@ -60,4 +64,4 @@ public:
 	return pC;
    }
 };
-
+#endif // GAMECLASSES_H 

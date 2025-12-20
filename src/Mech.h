@@ -51,7 +51,7 @@ public:
 private:
 	std::string name;
 	Stats base_stats;
-	std::unique_ptr<Equipment> equipment; // Use unique_ptr for ownership
+	std::unique_ptr<Equipment> equipment; // Using unique_ptr for ownership
 
 	// Storage for unequipped items
 	std::vector<std::shared_ptr<Item>> inventory;

@@ -189,8 +189,10 @@ bool Game::startGame() {
 			// Give starter gear to player
 			Equipment& player_mech_equipment = player_mech.getEquipment();
 			std::cout << "\nEquiping basic loadout onto player mech" << std::endl;
-			// WARN(MSR): For now hardcoding this in but later having a starter loadout for each mech is the goal.
 			
+
+			// Starter equipment based on class picked.	
+			if (player_pulot
 			auto common_laser_gun_item = std::make_shared<Item>(item_templates[0], Rarity::COMMON);
 			player_mech_equipment.equip(common_laser_gun_item);
 			player_mech_equipment.equip(std::make_shared<Item>(item_templates[2], Rarity::COMMON));

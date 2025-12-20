@@ -296,7 +296,7 @@ int main() {
 
 	// This will be called when the player clicks a specific class card
 	CROW_ROUTE(app, "/init_game")
-	([](const crow::request& req) {
+	([&game_instance](const crow::request& req) {
 		// 1. Get the class from the URL parameters
 		auto selected_class = req.url_params.get("class");
 
@@ -309,8 +309,10 @@ int main() {
 		std::cout << "SELECTED_CLASS = " << class_id << std::endl;
 		std::cout << "-----" << std::endl;
 
-		// 2. Use player selection
-
+		// 2. Use player selection to create class instance
+		game_instance.player_pilot_class = PilotClassFactory::createPilotClass(class_id);
+		std::cout << "player_pilot_class id: " << game_instance.player_pilot_class.id << std::endl; 
+			
 
 		std::cout << "Initializing game from request" << std::endl;
 		crow::response res;

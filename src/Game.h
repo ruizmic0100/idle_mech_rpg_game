@@ -12,6 +12,7 @@
 #include "Mech.h"
 #include "Item.h"
 #include "Utils.h"
+#include "GameClasses.h"
 #include "json.hpp" // nlohmann/json
 
 /* Implementation Highlights
@@ -101,6 +102,8 @@ public:
 
 	Mech player_mech;
 	Mech current_enemy;
+
+	PilotClass player_pilot_class;
 
 private:
 	void gameLoop(); // The function that runs in a separate thead
