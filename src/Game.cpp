@@ -192,7 +192,7 @@ bool Game::startGame() {
 			
 
 			// Starter equipment based on class picked.	
-			if (player_pulot
+			// TODO(MSR): if (player_pulot
 			auto common_laser_gun_item = std::make_shared<Item>(item_templates[0], Rarity::COMMON);
 			player_mech_equipment.equip(common_laser_gun_item);
 			player_mech_equipment.equip(std::make_shared<Item>(item_templates[2], Rarity::COMMON));

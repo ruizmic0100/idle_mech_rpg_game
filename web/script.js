@@ -18,6 +18,7 @@ let currentSlotOpening = null; // Tracks which slot we are trying to equip
 let lastPlayerHp = null;
 let lastEnemyHp = null;
 let lastEnemyName = null;
+let lastEnemyShield = null;
 
 // --- Formatting Helpers ---
 function formatStats(stats) {
@@ -43,7 +44,16 @@ function spawnFloatingText(targetElementId, text, type) {
 	const value = Math.round(text);
 	const el = document.createElement('div');
 	el.textContent = value;
-	el.className = `damage-popup ${type === 'heal' ? 'heal-text' : 'damage-text'}`;
+	
+	// Determining type of floating text
+	if (type === 'heal') {
+		el.className = 'damage-popup heal-text';
+	} else if (type === 'shield-damage') {
+		el.className = 'damage-popup shield-damage-text';
+		el.style.colr = '#00aaff'; // Setting blue-color
+	} else {
+		el.className = 'damage-popup damage-text';
+	}
 
 	// --- SCALING LOGIC FOR DAMAGE NUMBERS ---
 	// Base size is 1.5em
@@ -93,7 +103,8 @@ function updateUI(data) {
 	// If enemy name changed, its a new spawn, so reset tracker instead of showing damage
 	if (data.enemy.name !== lastEnemyName) {
 		lastEnemyName = data.enemy.name;
-		lastEnemyHp = data.enemy.hp; // Reset, don't show diff
+		lastEnemyHp = data.enemy.hp;
+		lastEnemyShield = data.enemy.shield;
 	} else {
 		if (lastEnemyHp !== null) {
 			const diff = data.enemy.hp - lastEnemyHp;
@@ -101,7 +112,17 @@ function updateUI(data) {
 				spawnFloatingText('enemy-panel', Math.abs(diff), 'damage');	
 			}
 		}
+
+		if (lastEnemyShield !== null) {
+			const diff = data.enemy.shield - lastEnemyShield;
+			if (diff < -0.25) { // Shield Damage Detected
+				spawnFloatingText('enemy-panel', Math.abs(diff), 'shield-damage');
+			}
+		}
+
 		lastEnemyHp = data.enemy.hp;
+		lastEnemyShield = data.enemy.shield;
+
 	}
 
     // 1. Update Text Stats
