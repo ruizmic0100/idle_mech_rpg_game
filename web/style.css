@@ -242,3 +242,17 @@ h1, h2, h3 {
 		transform: translate(-50%, -150%) scale(1.0);
 	}
 }
+
+.exp-container {
+	height: 12px;
+	background-color: #2c3e50;
+	border-radius: 4px;
+	overflow: hidden;
+	margin-top: 4px;
+	border: 1px solid #34495e;
+}
+
+.exp-bar {
+	height: 100%;
+	transition: width 0.4s ease-out;
+}

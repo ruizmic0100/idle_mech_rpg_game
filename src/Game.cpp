@@ -53,26 +53,12 @@ Game::Game() : current_floor(1), enemies_defeated_on_floor(0), combat_phase(Comb
 
 	std::cout << "Game Object constructed!" << std::endl;
 
-	// Initialize player mech with some basic default stats
-	Stats player_base_stats = {
-		{StatType::HEALTH, 100},
-		{StatType::ARMOR, 1},
-		{StatType::ENERGY_SHIELD, 1},
-		{StatType::ATTACK, 1},
-		{StatType::ATTACK_SPEED, 3},
-		{StatType::MOBILITY, 1},
-		{StatType::ENERGY, 10},
-		{StatType::ENERGY_RECOVERY, 1},
-		{StatType::REPAIR, 0},
-		{StatType::TECHNOLOGY, 1}
-
-	};
 
 	// Add in selected class stuff
        	 	
 
-	player_mech = Mech("Player", player_base_stats);
-	std::cout << "`player_mech` initialized with `player_base_stats`." << std::endl;
+//	player_mech = Mech("Player", player_base_stats);
+//	std::cout << "`player_mech` initialized with `player_base_stats`." << std::endl;
 
 	// Initialize a test enemy mech with default constructor stats
 	Stats test_enemy_stats = { 
@@ -96,7 +82,7 @@ Game::~Game() {
 	std::cout << "Game Object destructed!" << std::endl;
 }
 
-void Game::loadData(const std::string& item_file_path, const std::string& boss_file_path) {
+void Game::loadData(const std::string& item_file_path, const std::string& boss_file_path, const std::string& level_file_path) {
 	std::lock_guard<std::mutex> lock(game_state_mutex); // Protect data loading
 
 	// Load Items
@@ -136,7 +122,7 @@ void Game::loadData(const std::string& item_file_path, const std::string& boss_f
 	std::cout << "Loaded " + std::to_string(item_templates.size()) + " item_templates." << std::endl;
 	//std::cout << "item_templates: " << item_json_data.dump(4);
 
-	// Load Bossess
+	// Load Bosses
 	std::ifstream boss_fs(boss_file_path);
 	if (!boss_fs.is_open()) {
 		throw std::runtime_error("Failed to open boss file: " + boss_file_path);	
@@ -158,16 +144,52 @@ void Game::loadData(const std::string& item_file_path, const std::string& boss_f
 				bd.stats[stringToStatType(stat_key_str)] = stat_value.get<double>();
 			}
 		}
+		bd.exp_reward = boss_entry.at("exp_reward").get<int>();
 		boss_data[floor_num] = bd;
 	}
 
 	std::cout << "Loaded " + std::to_string(boss_data.size()) + " boss definitions." << std::endl;
 	//std::cout << "boss data: " << boss_json_data.dump(4);	
+
+	// Load levels
+	std::ifstream level_fs(level_file_path);
+	if (!level_fs.is_open()) {
+		throw std::runtime_error("Failed to open level file: " + level_file_path);	
+	}
+	json level_json_data;
+	try {
+		level_fs >> level_json_data; // Pipe in the boss data
+	} catch (json::parse_error& e) {
+		throw std::runtime_error("Failed to parse level JSON: " + std::string(e.what()));
+	}
+	for (auto& [classes, requirements] : level_json_data["levels"].items()) {
+		std::map<int, int> temp_map;
+		for (auto& each_level : requirements) {
+			std::cout << "each_level( " << classes << "): " << each_level << std::endl;
+			temp_map[each_level["level"]] = each_level["experience_needed"];
+		}
+		level_requirements[classes] = temp_map;
+	}
+	std::cout << "Loaded " << "level data" << std::endl;
+	for (auto& [classes, requirements] : level_requirements) {
+		std::cout << classes << ": " << std::endl;
+		for (auto& [level, needed] : requirements) {
+			std::cout << level << ":" << needed << std::endl;
+		}
+	}
+
+
 }
 
 bool Game::startGame() {
 	std::cerr << "DEBUG: Game::startGame() called." << std::endl;
 	std::lock_guard<std::mutex> lock(game_state_mutex); // Protect game_running state
+	
+	if (!class_selected) {
+		std::cerr << "Cannot start game: No class selected." << std::endl;
+		return false;
+	}
+
 	if (!game_running) {
 		game_running = true;
 		std::cerr << "DEBUG: Game::startGame() - game_running is SET to true." << std::endl;
@@ -236,6 +258,7 @@ bool Game::isGameRunning() const {
 	return game_running.load(); // Safely read atomic bool
 }
 
+// TAG: MAIN GAME LOOP
 void Game::gameLoop() {
 	std::cerr<< "DEBUG: Game::gameLoop() THREAD STARTED." << std::endl;
 	auto last_time = std::chrono::high_resolution_clock::now();
@@ -264,12 +287,20 @@ void Game::gameTick(double delta_time) {
 		std::cout << "Enemy defeated..." << std::endl;
 		awardLoot();
 		enemies_defeated_on_floor++;
-
+	
+		int exp_gain = 0;
 		if (is_enemy_boss) {
 			current_floor++;
 			enemies_defeated_on_floor = 0;
+			exp_gain = boss_data[current_floor].exp_reward;
 			std::cout << "Boss defeated! Advancing to next floor " + std::to_string(current_floor) << std::endl;
+		} else {
+			exp_gain = current_floor * 2.0; // Simple exp scaling
 		}
+
+		std::cout << "exp_gain: " << exp_gain << std::endl;
+
+		player_mech.addExperience(exp_gain, level_requirements, player_pilot_class.id);
 
 		if (enemies_defeated_on_floor >= ENEMIES_PER_FLOOR) {
 			spawnBoss();
@@ -533,6 +564,35 @@ GameStateForWeb Game::getGameState() {
 	state.player_max_hp = getStat(p_total_stats, StatType::HEALTH);
 	state.player_shield = player_mech.getCurrentEnergyShield();
 	state.player_max_shield = getStat(p_total_stats, StatType::ENERGY_SHIELD);
+	state.player_level = player_mech.getLevel();
+	state.player_experience = player_mech.getCurrentExperience();
+
+	// Calculate EXP needed for NEXT level
+	if (player_pilot_class.id == "ace") {
+		int current_level = player_mech.getLevel();
+		for (auto& [level, needed] : level_requirements["ace"]) {
+			if (level == current_level) {
+				state.player_next_level_experience = needed;
+			}
+		}
+	} else if (player_pilot_class.id == "bulwark") {
+		int current_level = player_mech.getLevel();
+		for (auto& [level, needed] : level_requirements["bulwark"]) {
+			if (level == current_level) {
+				state.player_next_level_experience = needed;
+			}
+		}
+
+	} else if (player_pilot_class.id == "technocrat") {
+		int current_level = player_mech.getLevel();
+		for (auto& [level, needed] : level_requirements["technocrat"]) {
+			if (level == current_level) {
+				state.player_next_level_experience = needed;
+			}
+		}
+
+	}
+
 	state.player_total_stats = p_total_stats;
 	for (const auto& pair : player_mech.getEquipment().getEquippedItems()) {
 		if (pair.second) {
@@ -616,4 +676,28 @@ void Game::print_enemy_mech_stats() {
 	std::cout << "ENERGY_RECOVERY: " << getStat(em_stats, StatType::ENERGY_RECOVERY) <<  std::endl;
 	std::cout << "REPAIR: " << getStat(em_stats, StatType::REPAIR) <<  std::endl;
 	std::cout << "TECHNOLOGY: " << getStat(em_stats, StatType::TECHNOLOGY) <<  std::endl;
+}
+
+bool Game::initPlayerClass(const std::string& classId) {
+	std::lock_guard<std::mutex> lock(game_state_mutex);
+	
+	// 1. Use the factory to get class stats
+	player_pilot_class = PilotClassFactory::createPilotClass(classId);
+	if (player_pilot_class.id.empty() || player_pilot_class.archetype == ClassArchetype::None) {
+		return false; // Invalid class
+	}
+	
+	// 2. BUILDING THE MECH (At "System Initialization")
+	// Now create the mech with the class stats
+	player_mech = Mech("Player", player_pilot_class.stats);
+
+	// Set the class ID on the mech for EXP lookup later
+	// TODO(MSR): need to add a setClassId method to mech class
+	// player_mech.setClassId(classId);
+
+	
+
+	class_selected = true;
+	std::cout << "Player initialized as: " << classId << std::endl;
+	return true;
 }

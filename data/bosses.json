@@ -8,7 +8,8 @@
 			"ATTACK": 50,
 			"ATTACK_SPEED": 0.8,
 			"MOBILITY": 10
-		}
+		},
+		"exp_reward": 30
 	},
 	"2": {
 		"name": "Warden Unit 7",
@@ -20,7 +21,8 @@
 			"ATTACK_SPEED": 1.0,
 			"MOBILITY": 15,
 			"REPAIR": 5.0
-		}
+		},
+		"exp_reward": 60
 	},
 	"3": {
 		"name": "Imperial Unit 400",
@@ -32,6 +34,7 @@
 			"ATTACK_SPEED": 2.0,
 			"MOBILITY": 35,
 			"REPAIR": 100
-		}
+		},
+		"exp_reward": 120
 	}
 }

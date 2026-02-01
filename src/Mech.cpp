@@ -245,3 +245,17 @@ void Mech::printCurrentEquipment() const {
 	std::cout << "RIGHT_SHOULDER_WEAPON: " << right_shoulder_weapon_slot << std::endl;
 	std::cout << "---" << std::endl;
 }
+
+// handles adding experience to the current player state
+void Mech::addExperience(int amount, std::map<std::string, std::map<int, int>> level_requirements, std::string pc_id) {
+	current_exp += amount;
+	std::map<int, int> class_requirements = level_requirements[pc_id];
+	int new_level = getLevel();
+
+	if (current_exp >= class_requirements[getLevel()]) {
+		std::cout << "LEVEL UP!!!" << std::endl;
+		level = new_level + 1;
+
+		// TODO(MSR): trigger stat allocation points being given to player 
+	}
+}

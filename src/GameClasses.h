@@ -50,15 +50,45 @@ public:
 	   };
 
 	   pC.passive.id = "TANK MODE";
-	   pC.passive.description = "I AM TANKKKKK!!!!";
+	   pC.passive.description = "I AM TANKKKKK!!!";
 	}
 	// --- 2. THE ACE (DPS/Speed) ---
 	else if (classId == "ace") {
+	   pC.archetype = ClassArchetype::Ace;
+	   pC.stats = {
+		{StatType::HEALTH, 150},
+		{StatType::ARMOR, 4},
+		{StatType::ENERGY_SHIELD, 30},
+		{StatType::ATTACK, 5},
+		{StatType::ATTACK_SPEED, 2.5},
+		{StatType::MOBILITY, 8},
+		{StatType::ENERGY, 20},
+		{StatType::ENERGY_RECOVERY, 2},
+		{StatType::REPAIR, 1},
+		{StatType::TECHNOLOGY, 2},
+	   };
 
+	   pC.passive.id = "OVERCLOCK";
+	   pC.passive.description = "Perfect accuracy; no failure.";
 	}
-	// --- 3. THE TECHNOCRAT (Scaling) ---
+	// --- 3. THE TECHNOCRAT (Utility/Scaling) ---
 	else if (classId == "technocrat") {
+	   pC.archetype = ClassArchetype::Technocrat;
+	   pC.stats = {
+		{StatType::HEALTH, 120},
+		{StatType::ARMOR, 2},
+		{StatType::ENERGY_SHIELD, 100},
+		{StatType::ATTACK, 3},
+		{StatType::ATTACK_SPEED, 1.2},
+		{StatType::MOBILITY, 3},
+		{StatType::ENERGY, 50},
+		{StatType::ENERGY_RECOVERY, 5},
+		{StatType::REPAIR, 2},
+		{StatType::TECHNOLOGY, 10},
+	   };
 
+	   pC.passive.id = "NANOBOTS";
+	   pC.passive.description = "Logic beats brute force.";
 	}
 
 	return pC;

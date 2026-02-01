@@ -3,8 +3,10 @@
 
 #include <string>
 #include <memory>
+#include <map>
 #include "Stats.h"
 #include "Equipment.h"
+#include "GameClasses.h"
 
 class Mech {
 public:
@@ -44,9 +46,15 @@ public:
 	// -- Inventory Methods --
 	void addToInventory(std::shared_ptr<Item> item);
 	std::shared_ptr<Item> getItemFromInventory(int index);
+
 	// Remove item at index from inventor vector
 	void removeFromInventory(int index);
 	const std::vector<std::shared_ptr<Item>>& getInventory() const;
+
+	// Experience methods
+	void addExperience(int amount, std::map<std::string, std::map<int, int>> level_requirements, std::string pc_id);
+	int getCurrentExperience() const { return current_exp; }
+	int getLevel() const { return level; }
 
 private:
 	std::string name;
@@ -60,6 +68,11 @@ private:
 	double current_hp = 0;
 	double current_energy_shield = 0;
 	double current_energy = 0;
+
+	// EXP
+	int current_exp = 0;
+	int level = 0;
+	std::string player_class = "NONE"; // Default, should be set on creation
 };
 
 

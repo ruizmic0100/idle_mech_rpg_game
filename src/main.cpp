@@ -98,6 +98,9 @@ void to_json(json& j, const GameStateForWeb& gs) {
 			{"max_hp", gs.player_max_hp},
 			{"shield", gs.player_shield},
 			{"max_shield", gs.player_max_shield},
+			{"level", gs.player_level},
+			{"exp", gs.player_experience},
+			{"exp_needed", gs.player_next_level_experience},
 			{"stats", gs.player_total_stats}, // Uses the Stats to_json helper
 			{"equipment", player_equip}
 
@@ -177,22 +180,23 @@ int main() {
 	// Initialize Game
 	Game game_instance;
 	
-	// Load in items and boss data
+	// Load in files from data/
 	try {
-		game_instance.loadData("data/items.json", "data/bosses.json");
+		game_instance.loadData("data/items.json", "data/bosses.json", "data/levels.json");
 	} catch (const std::exception& e) {
 		std::cerr << "Error loading game data: " << e.what() << std::endl;
 		return 1;
 	}
 
 	
+	// TODO(MSR): Move this to Game.cpp	
 	// Creating player_mech json stats file
-	json player_mech_j;
-	mech_stats_to_json(player_mech_j, game_instance.player_mech);
-	std::ofstream p_o("player_mech.json");
-	p_o << player_mech_j.dump(4);
-	p_o.close();
-	std::cout << "Created player_mech json stats file" << std::endl;
+//	json player_mech_j;
+//	mech_stats_to_json(player_mech_j, game_instance.player_mech);
+//	std::ofstream p_o("player_mech.json");
+//	p_o << player_mech_j.dump(4);
+//	p_o.close();
+//	std::cout << "Created player_mech json stats file" << std::endl;
 
 
 	//Initialize Web Server (Crow)
@@ -210,6 +214,9 @@ int main() {
 	// API endpoint to start the game
 	CROW_ROUTE(app, "/api/startgame").methods(crow::HTTPMethod::Post) // POST for actions
 	([&game_instance]() {
+		if (!game_instance.isClassSelected()) {
+			return crow::response(403, "System Error: No pilot class initialized.");
+		}
 		if (game_instance.startGame()) {
 			return crow::response(200, "Game started successfully.");
 		} else {
@@ -309,12 +316,17 @@ int main() {
 		std::cout << "SELECTED_CLASS = " << class_id << std::endl;
 		std::cout << "-----" << std::endl;
 
-		// 2. Use player selection to create class instance
-		game_instance.player_pilot_class = PilotClassFactory::createPilotClass(class_id);
-		std::cout << "player_pilot_class id: " << game_instance.player_pilot_class.id << std::endl; 
-			
+		// 2. Initialize the player with the chosen class
+		// This method will:
+		// - Create the PilotClass
+		// - Instantiate the Mech with class stats
+		// - Set the class_selected flag
+		if (!game_instance.initPlayerClass(class_id)) {
+			return crow::response(400, "Error: Invalid class selected.");
+		}
 
-		std::cout << "Initializing game from request" << std::endl;
+		std::cout << "Game initialized for class: " << class_id << std::endl;
+			
 		crow::response res;
 		res.redirect("/game_dashboard");
 		return res;

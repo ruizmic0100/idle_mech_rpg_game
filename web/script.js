@@ -26,8 +26,10 @@ function formatStats(stats) {
     // Create div elements string for the grid
     for (const key in stats) {
         let value = stats[key];
-        if (key === 'ARMOR') value = (value * 100).toFixed(1) + '%';
-        else if (Number.isFinite(value) && Math.abs(value) > 0.01) value = Number(value.toFixed(1));
+//        if (key === 'ARMOR') value = (value * 100).toFixed(1) + '%';
+//        else if (Number.isFinite(value) && Math.abs(value) > 0.01) value = Number(value.toFixed(1));
+		if (Number.isFinite(value) && Math.abs(value) > 0.01) value = Number(value.toFixed(1));
+		
         
         // Cleanup key names
         let niceKey = key.replace('_', ' ');
@@ -146,6 +148,13 @@ function updateUI(data) {
     setBar('e-hp-bar', data.enemy.hp, data.enemy.max_hp);
     setBar('e-shield-bar', data.enemy.shield, data.enemy.max_shield);
 
+	const player = data.player;
+	const expPercent = (player.exp / player.exp_needed) * 100;
+	document.getElementById('exp-bar').style.width = expPercent + '%';
+	document.getElementById('player-level').innerText = player.level;
+	document.getElementById('current-exp').innerText = Math.floor(player.exp);
+	document.getElementById('next-level-exp').innerText = player.exp_needed;
+
     // 3. Update Equipment List (Clickable)
     const equipList = document.getElementById('player-equipment-list');
     equipList.innerHTML = '';
@@ -263,7 +272,7 @@ function showStartScreen() {
 
 function showGameScreen() {
     startScreen.style.display = 'none';
-    gameScreen.style.display = 'block';
+    gameScreen.style.display = 'grid';
 }
 
 function startPollingGameState() {

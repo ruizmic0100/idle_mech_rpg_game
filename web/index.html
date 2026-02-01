@@ -21,38 +21,51 @@
             <span>THREAT LEVEL: <strong id="enemies-defeated" style="color: #fff;">0</strong></span>
         </div>
 
-        <!-- Player Panel -->
-        <div class="mech-panel" id="player-panel" style="border-top: 3px solid var(--accent-blue);">
+		<!-- COMBAT HUD ROW (Side by Side) -->
+
+        <!-- Player Bar -->
+        <div class="mech-panel" id="player-panel" style="grid-column: 1 / 2; border-top: 3px solid var(--accent-blue);">
             <h2><span id="player-name">Player</span></h2>
-            
-            <!-- Visual Bars -->
             <div class="bar-group">
                 <small>Hull Integrity</small>
                 <div class="bar-container"><div id="p-hp-bar" class="bar-fill hp-fill" style="width: 100%;"></div></div>
                 <small>Energy Shield</small>
                 <div class="bar-container"><div id="p-shield-bar" class="bar-fill shield-fill" style="width: 100%;"></div></div>
             </div>
+		</div>
 
-            <h3>Systems Status</h3>
-            <div id="player-stats" class="stats-grid"></div>
-
-            <h3 style="margin-top: 20px;">Loadout <small style="font-size:0.6em; color:#666;">(CLICK TO CONFIGURE)</small></h3>
-            <div id="player-equipment-list" class="equipment-list"></div>
-        </div>
-
-        <!-- Enemy Panel -->
-        <div class="mech-panel" id="enemy-panel" style="border-top: 3px solid var(--accent-red);">
+        <!-- Enemy Bar -->
+        <div class="mech-panel" id="enemy-panel" style="grid-column: 2 / 3; border-top: 3px solid var(--accent-red);">
             <h2><span id="enemy-name">Target</span> <span id="enemy-is-boss" style="color:red"></span></h2>
-            
             <div class="bar-group">
                 <small>Hull Integrity</small>
                 <div class="bar-container"><div id="e-hp-bar" class="bar-fill hp-fill" style="width: 100%;"></div></div>
                 <small>Energy Shield</small>
                 <div class="bar-container"><div id="e-shield-bar" class="bar-fill shield-fill" style="width: 100%;"></div></div>
             </div>
-            
-            <div id="enemy-stats" class="stats-grid"></div>
         </div>
+		
+		<!-- DETAILS ROW -->
+		<!-- Player Stats & Loadout -->
+		<div class="mech-panel" style="grid-column: 1 / 2;">
+            <h3>Systems Status</h3>
+			<label>EXP (Level <span id="player-level">0</span>)</label>
+			<div class="progress-container exp-container">
+				<div id="exp-bar" class="progress-bar exp-bar" style="width: 0%; background-color: #9b59b6;"></div>
+			</div>
+			<div class="stat-text"><span id="current-exp">0</span> / <span id="next-level-exp">10</span></div>
+            <div id="player-stats" class="stats-grid"></div>
+
+            <h3 style="margin-top: 20px;">Loadout <small style="font-size:0.6em; color:#666;">(CLICK TO CONFIGURE)</small></h3>
+            <div id="player-equipment-list" class="equipment-list"></div>
+        </div>
+		
+		<!-- Enemy Stats -->
+		<div class="mech-panel" style="grid-column: 2 / 3;">
+			<h3>Target Analysis</h3>
+            <div id="enemy-stats" class="stats-grid"></div>
+		</div>
+
 
         <!-- Logs -->
         <div class="log-panel" style="grid-column: 1 / -1;">

@@ -39,6 +39,7 @@ using json = nlohmann::json;
 struct BossData {
 	std::string name;
 	Stats stats;
+	int exp_reward;
 };
 
 // Helper struct for web inventory
@@ -57,6 +58,9 @@ struct GameStateForWeb { // Data structure to send to frontend
 	double player_max_hp;
 	double player_shield;
 	double player_max_shield;
+	double player_level;
+	double player_experience;
+	double player_next_level_experience;
 	Stats player_total_stats;
 	std::map<EquipmentSlot, std::string> player_equipment_names; // Simple view
 
@@ -85,7 +89,7 @@ public:
 	Game();
 	~Game();
 
-	void loadData(const std::string& item_file, const std::string& boss_file);
+	void loadData(const std::string& item_file, const std::string& boss_file, const std::string& level_file_path);
 	bool startGame(); // Returns true if successfully started
 	void stopGameLoop();
 	bool isGameRunning() const;
@@ -104,6 +108,13 @@ public:
 	Mech current_enemy;
 
 	PilotClass player_pilot_class;
+
+	// [CLASS]: [LEVEL]: [EXPERIENCE_NEEDED]
+	// "ace": 1: 10
+	std::map<std::string, std::map<int, int>> level_requirements;  
+
+	bool initPlayerClass(const std::string& classId);
+	bool isClassSelected() const { return class_selected; }
 
 private:
 	void gameLoop(); // The function that runs in a separate thead
@@ -140,6 +151,8 @@ private:
 	// Logging
 	std::vector<std::string> game_log;
 	const size_t MAX_LOG_SIZE = 20;
+
+	bool class_selected = false;
 };
 
 #endif // GAME_H

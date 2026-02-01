@@ -1,0 +1,25 @@
+{
+	"levels": {
+		"bulwark": [
+			{"level": 0, "experience_needed": 1},
+			{"level": 1, "experience_needed": 10},
+			{"level": 2, "experience_needed": 20},
+			{"level": 3, "experience_needed": 40},
+			{"level": 4, "experience_needed": 80}
+		],
+		"ace": [
+			{"level": 0, "experience_needed": 1},
+			{"level": 1, "experience_needed": 10},
+			{"level": 2, "experience_needed": 20},
+			{"level": 3, "experience_needed": 40},
+			{"level": 4, "experience_needed": 80}
+		],
+		"technocrat": [
+			{"level": 0, "experience_needed": 1},
+			{"level": 1, "experience_needed": 10},
+			{"level": 2, "experience_needed": 20},
+			{"level": 3, "experience_needed": 40},
+			{"level": 4, "experience_needed": 80}
+		]
+	}
+}
